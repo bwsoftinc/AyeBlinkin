@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <AssemblyName>AyeBlinkin</AssemblyName>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Program.ico"/>
+    <EmbeddedResource Include="Resources\Settings.ico"/>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="1.10.0"/>
+    <PackageReference Include="SharpDX" Version="4.2.0"/>
+    <PackageReference Include="SharpDX.DXGI" Version="4.2.0"/>
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0"/>
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0"/>
+    <PackageReference Include="SharpDX.DirectSound" Version="4.2.0"/>
+    <PackageReference Include="SharpDX.Mathematics" Version="4.2.0"/>
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.1.0"/>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,9 @@
+{
+    "files.exclude" : {
+        "**/bin/" : true,
+        "**/obj/" : true,
+        ".vscode/" : false,
+        "**.code-workspace": true,
+        "**.sln": true
+    }
+}

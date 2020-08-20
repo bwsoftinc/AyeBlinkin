@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${env:PROGRAMFILES(X86)}/Arduino/hardware/arduino/avr/cores/arduino_256",
+                "${env:PROGRAMFILES(X86)}/Arduino/hardware/arduino/avr/libraries/EEPROM/src",
+                "${env:PROGRAMFILES(X86)}/Arduino/hardware/tools/avr/avr/include",
+                "${env:PROGRAMFILES(X86)}/Arduino/hardware/tools/avr/avr/include/avr",
+                "${env:LOCALAPPDATA}/Arduino15/packages/blinkinlabs/hardware/avr/1.1.0/variants/BlinkyTape256",
+                "${env:USERPROFILE}/Documents/Arduino/libraries/FastLED",
+                "${workspaceFolder}/BlinkyTape"
+            ],
+            "defines": [
+                "USBCON",
+                "__AVR_ATmega32U4__",
+                "FASTLED_HAS_CLOCKLESS"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-x64",
+            "forcedInclude": []
+        }
+    ],
+    "version": 4
+}
