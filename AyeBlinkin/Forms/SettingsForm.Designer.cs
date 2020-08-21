@@ -47,19 +47,18 @@ namespace AyeBlinkin.Forms
                this.audioCheckbox = makeCheckBox(208, 126)
             });
 
-            this.AddBinding("Location", "Location");
-            this.AddBinding("ClientSize", "ClientSize");
-            this.adapter.AddBinding("SelectedValue", "Adapters");
-            this.display.AddBinding("SelectedValue", "Displays");
-            this.serial.AddBinding("SelectedValue", "SerialComs");
-            this.horizontal.AddBinding("Value", "HorizontalLEDs");
-            this.vertical.AddBinding("Value", "VerticalLEDs");
-            this.mirrorCheckbox.AddBinding("Checked", "Mirror");
-            this.audioCheckbox.AddBinding("Checked", "Audio");
+            this.AddBinding(nameof(this.Location), nameof(Settings.Model.SettingsWindowLocation));
+            this.AddBinding(nameof(this.ClientSize), nameof(Settings.Model.SettingsWindowSize));
+            this.adapter.AddBinding(nameof(this.adapter.SelectedValue), nameof(Settings.Model.Adapters));
+            this.display.AddBinding(nameof(this.display.SelectedValue), nameof(Settings.Model.Displays));
+            this.serial.AddBinding(nameof(this.serial.SelectedValue), nameof(Settings.Model.SerialComs));
+            this.horizontal.AddBinding(nameof(this.horizontal.Value), nameof(Settings.Model.HorizontalLEDs));
+            this.vertical.AddBinding(nameof(this.vertical.Value), nameof(Settings.Model.VerticalLEDs));
+            this.mirrorCheckbox.AddBinding(nameof(this.mirrorCheckbox.Checked), nameof(Settings.Model.Mirror));
+            this.audioCheckbox.AddBinding(nameof(this.audioCheckbox.Checked), nameof(Settings.Model.Audio));
 
             this.Text = AyeBlinkin.Name;
             this.Icon = Icons.Program;
-            this.ClientSize = new Size(minWidth, minHeight);
         }
 
         private CheckBox makeCheckBox(int left, int top) =>

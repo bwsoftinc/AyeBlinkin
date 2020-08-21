@@ -3,10 +3,9 @@ using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using System.ComponentModel;
-using System.Collections.Generic;
 
-using AyeBlinkin.DirectX;
 using AyeBlinkin.Serial;
+using AyeBlinkin.DirectX;
 
 namespace AyeBlinkin.Forms
 {
@@ -19,8 +18,6 @@ namespace AyeBlinkin.Forms
         private CheckBox mirrorCheckbox;
         private NumericUpDown vertical;
         private NumericUpDown horizontal;
-        internal const int minWidth = 300;
-        internal const int minHeight = 150;
 
         internal SettingsForm() 
         { 
@@ -29,6 +26,7 @@ namespace AyeBlinkin.Forms
             Settings.Model.Adapters = DeviceEnumerator.GetAdapters();
             Settings.Model.SerialComs = SerialCom.GetUsbDevicePorts();
         }
+
         protected override void OnShown(EventArgs e) => Settings.SettingsHwnd = this.Handle;
         protected override void OnClosing(CancelEventArgs e) => Settings.SettingsHwnd = IntPtr.Zero;
 
@@ -40,15 +38,10 @@ namespace AyeBlinkin.Forms
             {
                 var width = 0;
                 using(var g = Graphics.FromHwnd(IntPtr.Zero))
-                    width = new[] { Settings.Model.Adapters, Settings.Model.Displays, Settings.Model.SerialComs }
-                        .SelectMany(x => x.Cast<KeyValuePair<string,string>>())
-                        .Max(x => (int)g.MeasureString(x.Value,  adapter.Font).Width);
+                    width = new[] { Settings.Model.Adapters.Values, Settings.Model.Displays.Values, Settings.Model.SerialComs.Values }
+                        .SelectMany(x => x).Max(x => (int)g.MeasureString(x, adapter.Font).Width);
 
                 adapter.Width = serial.Width = display.Width = width + 24;
-            }
-            else if(e.PropertyName == nameof(Settings.Model.DisplayId))
-            {
-                
             }
         }
     }

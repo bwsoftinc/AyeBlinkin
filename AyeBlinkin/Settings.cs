@@ -8,7 +8,6 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-using AyeBlinkin.Forms;
 using AyeBlinkin.DirectX;
 
 namespace AyeBlinkin 
@@ -125,14 +124,14 @@ namespace AyeBlinkin
                     var dim = val.Substring(i, val.Length - i - 1).Split('x');
                     if(int.TryParse(dim[0].Trim(), out int x) && int.TryParse(dim[1].Trim(), out int y)) {
                         var scale = 1;
-                        while(x/2 > SettingsForm.minWidth && y/2 > SettingsForm.minHeight) {
+                        while(x/2 > MinSettingsWindowWidth && y/2 > MinSettingsWindowHeight) {
                             x/=2;
                             y/=2;
                             scale *= 2;
                         }
 
                         Settings.Scale = scale;
-                        ClientSize = new Size(x, y);
+                        SettingsWindowSize = new Size(x, y);
                     }
                 }
             }
@@ -150,19 +149,21 @@ namespace AyeBlinkin
                 NotifyPropertyChanged();
             } }
 
-            //internal bindings
+            //internal bindings (not saved to config)
+            private const int MinSettingsWindowHeight = 150;
+            private const int MinSettingsWindowWidth = 300;
             public bool BrightBarEnabled {get => !Audio; set { } }
             public bool RGBBarsEnabled { get => !Mirror && PatternId == -2; set { } }
             public bool MirrorOff { get => !Mirror; set { } }
 
-            public Point Location { //the settings window screen location
+            public Point SettingsWindowLocation { //the settings window screen location
                 get => new Point(Left, Top); 
                 set { Top = value.Y; Left = value.X; }
             }
 
-            private Size clientSize = new Size(SettingsForm.minWidth, SettingsForm.minHeight);
-            public Size ClientSize { get => clientSize; set { 
-                clientSize = value;
+            private Size settingsWindowSize = new Size(MinSettingsWindowWidth, MinSettingsWindowHeight);
+            public Size SettingsWindowSize { get => settingsWindowSize; set { 
+                settingsWindowSize = value;
                 NotifyPropertyChanged();
             } }
 

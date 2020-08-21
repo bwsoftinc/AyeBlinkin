@@ -41,27 +41,27 @@ namespace AyeBlinkin.Serial
         {
             switch(e.PropertyName) 
             {
-                case "PatternId":
+                case nameof(Settings.Model.PatternId):
                     var value = Settings.Model.PatternId;
                     Enqueue(Message.SetPattern(value));
                     
-                    if(value == -2) {
+                    if(value == -2) { //manual control
                        Enqueue(Message.SetRed(Settings.Model.Red));
                        Enqueue(Message.SetGreen(Settings.Model.Green));
                        Enqueue(Message.SetBlue(Settings.Model.Blue));
                        Enqueue(Message.SetBright(Settings.Model.Brightness));
                     }
                     break;
-                case "Brightness":
+                case nameof(Settings.Model.Brightness):
                     Enqueue(Message.SetBright(Settings.Model.Brightness));
                     break;
-                case "Red":
+                case nameof(Settings.Model.Red):
                     Enqueue(Message.SetRed(Settings.Model.Red));
                     break;
-                case "Green":
+                case nameof(Settings.Model.Green):
                     Enqueue(Message.SetGreen(Settings.Model.Green));
                     break;
-                case "Blue":
+                case nameof(Settings.Model.Blue):
                     Enqueue(Message.SetBlue(Settings.Model.Blue));
                     break;
             }
@@ -70,7 +70,7 @@ namespace AyeBlinkin.Serial
         internal static Dictionary<string, string> GetUsbDevicePorts() 
         {
             var usbs = new List<string>();
-            using(var searcher = new ManagementObjectSearcher(@"select Name From Win32_PnPEntity where Name like 'BlinkyTape (%)'"))
+            using(var searcher = new ManagementObjectSearcher(@"select Name From Win32_PnPEntity where Name like '%(COM%)'")) 
             using(var collection = searcher.Get())
                 foreach(var obj in collection) {
                     usbs.Add((string)obj.GetPropertyValue("Name"));

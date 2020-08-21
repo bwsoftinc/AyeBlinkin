@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.ComponentModel;
 
-using AyeBlinkin;
 using AyeBlinkin.Resources;
 using AyeBlinkin.Forms.Controls;
 
@@ -41,19 +40,19 @@ namespace AyeBlinkin.Forms
                 AutoSize = false,
                 Width = 350,
                 Height = 200,
-                Renderer = new BindableToolStripMenuItem.ToolStripArrowRenderer("Patterns")
+                Renderer = new BindableToolStripMenuItem.ToolStripArrowRenderer(nameof(Settings.Model.Patterns))
             };
 
             strip.Items.AddRange(new ToolStripItem[] {
-                new MirrorMenuItem("Mirror", OpenSettingsForm),
+                new MirrorMenuItem(nameof(Settings.Model.Mirror), OpenSettingsForm),
                 new ToolStripSeparator(),
-                new TrackBarMenuItem("Red"),
-                new TrackBarMenuItem("Green"),
-                new TrackBarMenuItem("Blue"),
+                new TrackBarMenuItem(nameof(Settings.Model.Red)),
+                new TrackBarMenuItem(nameof(Settings.Model.Green)),
+                new TrackBarMenuItem(nameof(Settings.Model.Blue)),
                 new ToolStripSeparator(),
-                new TrackBarMenuItem("Brightness"),
+                new TrackBarMenuItem(nameof(Settings.Model.Brightness)),
                 new ToolStripSeparator(),
-                patterns = makeMenuItem("Patterns", null),
+                patterns = makeMenuItem(nameof(Settings.Model.Patterns), null),
                 makeMenuItem("Settings...", OpenSettingsForm),
                 makeMenuItem("Exit", Exit)
             });
@@ -64,7 +63,7 @@ namespace AyeBlinkin.Forms
 
         private void buildPatternOptions(object sender, PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == "PatternId")
+            if(e.PropertyName == nameof(Settings.Model.PatternId))
             {
                 var value = Settings.Model.PatternId;
                 foreach(var item in patterns.DropDown.Items.Cast<BindableToolStripMenuItem>())
@@ -75,7 +74,7 @@ namespace AyeBlinkin.Forms
                         item.Checked = true;
                 }
             }
-            else if (e.PropertyName == "Patterns")
+            else if (e.PropertyName == nameof(Settings.Model.Patterns))
             {
                 var value = Settings.Model.Patterns;
                 var items = patterns.DropDown.Items.Cast<BindableToolStripMenuItem>().ToList();
@@ -110,7 +109,7 @@ namespace AyeBlinkin.Forms
                     item.Click += (object sender, EventArgs e) =>
                             Settings.Model.PatternId = (int)(sender as BindableToolStripMenuItem).Tag;
 
-                    item.AddBinding("Enabled", "MirrorOff");
+                    item.AddBinding(nameof(item.Enabled), nameof(Settings.Model.MirrorOff));
 
                     return item;
                 }).ToArray());

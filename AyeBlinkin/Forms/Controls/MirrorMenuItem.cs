@@ -22,7 +22,7 @@ namespace AyeBlinkin.Forms.Controls
                 Margin = Padding.Empty,
                 Padding = Padding.Empty
             });
-            checkbox.AddBinding("Checked", model);
+            checkbox.AddBinding(nameof(checkbox.Checked), model);
 
             this.panel.Controls.Add(new Label() { 
                 Text = model.ToString(),

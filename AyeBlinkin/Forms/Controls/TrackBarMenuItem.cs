@@ -1,4 +1,3 @@
-using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -11,7 +10,9 @@ namespace AyeBlinkin.Forms.Controls
 
         public TrackBarMenuItem(string model) : base() 
         {
-            var setting = model.Equals("Brightness")? "BrightBarEnabled" : "RGBBarsEnabled";
+            var setting = model == nameof(Settings.Model.Brightness)? 
+                nameof(Settings.Model.BrightBarEnabled) : 
+                nameof(Settings.Model.RGBBarsEnabled);
 
             this.panel.Controls.Add(new Label() { 
                 Text = model,
@@ -33,8 +34,8 @@ namespace AyeBlinkin.Forms.Controls
                 Padding = Padding.Empty,
                 BackColor = Color.White,
             });
-            bar.AddBinding("Value", model);
-            bar.AddBinding("Enabled", setting);
+            bar.AddBinding(nameof(bar.Value), model);
+            bar.AddBinding(nameof(bar.Enabled), setting);
 
             this.panel.Controls.Add(box = new IntegerBox() {
                 AutoSize = false,
@@ -46,8 +47,8 @@ namespace AyeBlinkin.Forms.Controls
                 MaximumSize = new Size(25,18),
                 Maximum = 255
             });
-            box.AddBinding("Text", model);
-            box.AddBinding("Enabled", setting);
+            box.AddBinding(nameof(box.Text), model);
+            box.AddBinding(nameof(box.Enabled), setting);
         }
     }
 }

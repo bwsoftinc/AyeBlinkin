@@ -13,10 +13,13 @@ namespace AyeBlinkin.Forms.Controls
                 e.Handled = true;
             else
                 validate();
+            
+            base.OnKeyPress(e);
         }
 
         protected override void OnTextChanged(EventArgs e) {
             validate();
+            base.OnTextChanged(e);
         }
 
         private void validate() {

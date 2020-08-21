@@ -168,12 +168,13 @@ namespace AyeBlinkin.DirectX
             if(CheckRender(Settings.SettingsHwnd)) 
             {
                 device.ImmediateContext.CopyResource(cpuTexture, renderTexture);
-
                 renderOverlay.BeginDraw();
-                renderOverlay.DrawText($"FPS: {fps:00.00}", fpsFont, fpsLocation, fpsColor);
-                //TODO: draw virtual led dots in overlay                
-                renderOverlay.EndDraw();
 
+                renderOverlay.DrawText($"FPS: {fps:00.00}", fpsFont, fpsLocation, fpsColor);
+                //TODO: draw virtual led dots in overlay
+                //TODO: draw volume bar meter
+
+                renderOverlay.EndDraw();
                 renderWindow.Present(0, PresentFlags.None, presentParameters);
             }
         }
@@ -234,7 +235,7 @@ namespace AyeBlinkin.DirectX
                 duplicator?.ReleaseFrame();
                 return true;
             }
-            catch (Exception) 
+            catch
             {
                 return false;
             }
@@ -266,26 +267,24 @@ namespace AyeBlinkin.DirectX
 
         private class AvgFPSCounter
         {
-            private const int avgCount = 30;
-            private double total = 0F;
+            private const int framesToAverage = 30;
+            private const float msScale = 1000F * framesToAverage;
+            private float msTotal = 0F;
+            private int dataPointer = 0;
+            private float[] data = new float[framesToAverage];
             private Stopwatch timer = new Stopwatch();
-            private Queue<double> data = new Queue<double>(avgCount);
             public AvgFPSCounter() => timer.Start();
 
             public double NextFPS() 
             {
-                var count = data.Count;
-                var ms = timer.Elapsed.TotalMilliseconds;
+                var ms = (float)timer.Elapsed.TotalMilliseconds;
                 timer.Restart();
 
-                if(count == avgCount) {
-                    total -= data.Dequeue();
-                    count--;
-                }
+                msTotal += ms - data[dataPointer];
+                data[dataPointer] = ms;
 
-                total += ms;
-                data.Enqueue(ms);
-                return ++count * 1000 / total;
+                dataPointer = ++dataPointer % framesToAverage;
+                return msScale / msTotal;
             }
         }
 

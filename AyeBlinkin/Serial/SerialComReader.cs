@@ -43,7 +43,6 @@ namespace AyeBlinkin.Serial
 
                         ProcessMessage(messageBuffer.Skip(1).Take(ix-1));
                         messageBuffer = messageBuffer.Skip(ix + 1).ToList();
-
                         XON = true;
                     } 
                     else 
