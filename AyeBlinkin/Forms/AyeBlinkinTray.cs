@@ -53,7 +53,7 @@ namespace AyeBlinkin.Forms
                 new TrackBarMenuItem(nameof(Settings.Model.Brightness)),
                 new ToolStripSeparator(),
                 patterns = makeMenuItem(nameof(Settings.Model.Patterns), null),
-                makeMenuItem("Settings...", OpenSettingsForm),
+                makeMenuItem("Settings (preview)...", OpenSettingsForm),
                 makeMenuItem("Exit", Exit)
             });
 
@@ -106,8 +106,8 @@ namespace AyeBlinkin.Forms
                         Tag = p.Key
                     };
 
-                    item.Click += (object sender, EventArgs e) =>
-                            Settings.Model.PatternId = (int)(sender as BindableToolStripMenuItem).Tag;
+                    item.Click += (object mi, EventArgs ea) =>
+                            Settings.Model.PatternId = (int)(mi as BindableToolStripMenuItem).Tag;
 
                     item.AddBinding(nameof(item.Enabled), nameof(Settings.Model.MirrorOff));
 

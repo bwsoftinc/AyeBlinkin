@@ -1,18 +1,20 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace AyeBlinkin.Serial 
 {
     internal partial class SerialCom : IDisposable
     {
+        private static Stopwatch sw = new Stopwatch();
         private static object enqueueLock = new object();
-        private volatile static Queue<Message.Command> MessageQueue = new Queue<Message.Command>();
+        private static Queue<Message.Command> MessageQueue = new Queue<Message.Command>();
 
-        internal static void Enqueue(Message.Command command) { 
+        internal static void Enqueue(Message.Command item) { 
             lock(enqueueLock) 
-                MessageQueue.Enqueue(command);
+                MessageQueue.Enqueue(item);
         }
 
         private void Write(byte[] bytes) => port.Write(bytes, 0, bytes.Length);
@@ -31,17 +33,20 @@ namespace AyeBlinkin.Serial
 
                     if(instance.XON && MessageQueue.Count > 0) 
                     {
-                        if(MessageQueue.Peek().Raw.Length > instance.remoteBufferLeft)
-                        {
-                            //instance.XON = false;
-                            //continue;
-                        }
+                        //if(MessageQueue.Peek().Raw.Length > instance.remoteBufferLeft)
+                        //{
+                        //    instance.XON = false;
+                        //    continue;
+                        //}
 
                         var item = MessageQueue.Dequeue();
-                        if(item.Type == Message.Type.Stream || !MessageQueue.Any(x => x.Type == item.Type)) 
+                        if(!MessageQueue.Any(x => x.Type == item.Type))
                         {
-                            instance.remoteBufferLeft -= item.Raw.Length;
+                            //instance.remoteBufferLeft -= item.Raw.Length;
                             instance.Write(item.Raw);
+                        }
+                        else {
+                            Console.WriteLine($"{item.Type.ToString()} Message Dropped");
                         }
                     }
 

@@ -3,7 +3,9 @@
     <AssemblyName>AyeBlinkin</AssemblyName>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>7.3</LangVersion>
     <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Program.ico"/>

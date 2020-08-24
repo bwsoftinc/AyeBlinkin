@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using System.ComponentModel;
 
 using AyeBlinkin.Resources;
+using AyeBlinkin.Forms.Controls;
 
 namespace AyeBlinkin.Forms
 {
@@ -26,7 +27,16 @@ namespace AyeBlinkin.Forms
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
-            this.Controls.AddRange(new Control[] {
+            this.Controls.Add(this.controlPanel = new TransparentPanel() {
+                BackColor = Color.Transparent,
+                AutoSize = false,
+                Width = 300,
+                Height = 150,
+                Left = 30,
+                Top = 30
+            });
+
+            this.controlPanel.Controls.AddRange(new Control[] {
                                     makeLabel(18, 14, "Adapter"),
                      this.adapter = makeComboBox(103, 12),
 
@@ -36,7 +46,7 @@ namespace AyeBlinkin.Forms
                                     makeLabel(18, 68,"Serial Com"),
                       this.serial = makeComboBox(103, 66),
 
-                                    makeLabel(18, 97, "LEDs (W x H)"),
+                                    makeLabel(18, 97, "LEDs (W , H)"),
                   this.horizontal = makeNumericUpDown(103, 95),
                     this.vertical = makeNumericUpDown(143, 95),
 

@@ -25,7 +25,7 @@ namespace AyeBlinkin
             public event PropertyChangedEventHandler PropertyChanged;
             internal SynchronizationContext uiContext { private get; set; }
 
-            private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+            internal void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
             {
                 if(PropertyChanged == null) 
                     return;
@@ -150,8 +150,8 @@ namespace AyeBlinkin
             } }
 
             //internal bindings (not saved to config)
-            private const int MinSettingsWindowHeight = 150;
-            private const int MinSettingsWindowWidth = 300;
+            private const int MinSettingsWindowHeight = 240; //150
+            private const int MinSettingsWindowWidth = 320; //300
             public bool BrightBarEnabled {get => !Audio; set { } }
             public bool RGBBarsEnabled { get => !Mirror && PatternId == -2; set { } }
             public bool MirrorOff { get => !Mirror; set { } }
@@ -244,6 +244,7 @@ namespace AyeBlinkin
             //init volatile copies
             HorizontalLEDs = Model.HorizontalLEDs;
             VerticalLEDs = Model.VerticalLEDs;
+            Model.Mirror = false;
             bindingSource = new BindingSource(Model, null);
         }
 

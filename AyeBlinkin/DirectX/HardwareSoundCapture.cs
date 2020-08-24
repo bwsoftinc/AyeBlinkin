@@ -55,15 +55,15 @@ namespace AyeBlinkin.DirectX
             {
                 try {
                     instance.buffer.Read<short>(samples, 0, sampleCount, instance.buffer.CurrentRealPosition, LockFlags.None);
-                    var max = samples.Select(x => Math.Abs((double)x)).Max() / scale;
+                    var peak = samples.Select(x => Math.Abs((double)x)).Max() / scale;
                     //var rms = Math.Sqrt(samples.Select(x => (double)x * (double)x).Sum() / sampleCount);
-                    var val = max <= 1d? 0d : 255d * Math.Log10(max) / 2d;
+                    var val = peak <= 1d? 0d : 255d * Math.Log10(peak) / 2d;
                     Settings.Model.Brightness = (int)val;
                 } catch (Exception) {
 
                 }
 
-                //Console.WriteLine($"{max:00.00} {val:00}");
+                //Console.WriteLine($"{peak:00.00} {val:00}");
                 Thread.Sleep(33);
 
                 if(token.IsCancellationRequested) {

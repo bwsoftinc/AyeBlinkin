@@ -6,6 +6,8 @@ using System.ComponentModel;
 
 using AyeBlinkin.Serial;
 using AyeBlinkin.DirectX;
+using AyeBlinkin.Centroid;
+using AyeBlinkin.Forms.Controls;
 
 namespace AyeBlinkin.Forms
 {
@@ -19,12 +21,16 @@ namespace AyeBlinkin.Forms
         private NumericUpDown vertical;
         private NumericUpDown horizontal;
 
+        private TransparentPanel controlPanel;
+
         internal SettingsForm() 
         { 
             InitializeComponent();
             Settings.Model.PropertyChanged += ResizeControls;
             Settings.Model.Adapters = DeviceEnumerator.GetAdapters();
             Settings.Model.SerialComs = SerialCom.GetUsbDevicePorts();
+            Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.Mirror));
+            DominantColorForm.ShowSlice();
         }
 
         protected override void OnShown(EventArgs e) => Settings.SettingsHwnd = this.Handle;

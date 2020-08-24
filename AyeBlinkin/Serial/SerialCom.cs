@@ -64,6 +64,9 @@ namespace AyeBlinkin.Serial
                 case nameof(Settings.Model.Blue):
                     Enqueue(Message.SetBlue(Settings.Model.Blue));
                     break;
+                case nameof(Settings.Model.Mirror):
+                    Enqueue(Settings.Model.Mirror? Message.StreamStart() : Message.StreamEnd());
+                    break;
             }
         }
 

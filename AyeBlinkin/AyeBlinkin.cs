@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using AyeBlinkin.Forms;
 using AyeBlinkin.Serial;
 using AyeBlinkin.DirectX;
+using AyeBlinkin.Centroid;
 
 namespace AyeBlinkin 
 {
@@ -28,8 +29,8 @@ namespace AyeBlinkin
             Application.SetCompatibleTextRenderingDefault(false);
             Application.ApplicationExit += new EventHandler(OnExit);
 
-            //StartStopScreenThread();
             //StartStopAudioThread();
+            StartStopScreenThread();
             Application.Run(trayApp = new AyeBlinkinTray());
         }
 
@@ -40,13 +41,13 @@ namespace AyeBlinkin
         {            
             if(!start) 
             {
-                cancel?.Cancel();
+                try { cancel?.Cancel(); } catch { }
                 cancel?.Dispose();
                 return;
             }
 
             if(!cancel?.IsCancellationRequested??false)
-                cancel.Cancel();
+                try { cancel?.Cancel(); } catch { }
 
             cancel?.Dispose();
             cancel = new CancellationTokenSource();
@@ -56,9 +57,15 @@ namespace AyeBlinkin
         private static void OnExit(object sender, EventArgs e) 
         {
             Settings.SettingsHwnd = IntPtr.Zero;
-            screenThreadCancel?.Cancel();
-            comThreadCancel?.Cancel();
-            soundThreadCancel?.Cancel();
+
+            try { screenThreadCancel?.Cancel(); } catch { }
+            try { comThreadCancel?.Cancel(); } catch { }
+            try { soundThreadCancel?.Cancel(); } catch { }
+            
+            screenThreadCancel?.Dispose();
+            comThreadCancel?.Dispose();
+            soundThreadCancel?.Dispose();
+
             Settings.SaveToDisk();
             trayApp.hideIcon();
         }
