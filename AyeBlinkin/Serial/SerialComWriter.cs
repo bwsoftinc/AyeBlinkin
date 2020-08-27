@@ -33,21 +33,25 @@ namespace AyeBlinkin.Serial
 
                     if(instance.XON && MessageQueue.Count > 0) 
                     {
-                        //if(MessageQueue.Peek().Raw.Length > instance.remoteBufferLeft)
-                        //{
-                        //    instance.XON = false;
-                        //    continue;
-                        //}
-
                         var item = MessageQueue.Dequeue();
-                        if(!MessageQueue.Any(x => x.Type == item.Type))
+                        if(!MessageQueue.Any(x => x.Type == item.Type)) 
                         {
-                            //instance.remoteBufferLeft -= item.Raw.Length;
-                            instance.Write(item.Raw);
+                            if(item.Type == Message.Type.Stream) 
+                            {
+                                for(var x = 0; x < item.Raw.Length; x += 48) 
+                                {
+                                    instance.port.Write(item.Raw, x, Math.Min(48, item.Raw.Length - x));
+                                    while(!instance.XON)
+                                        Thread.Sleep(0);
+                                }
+                            }
+                            else 
+                                instance.Write(item.Raw);
                         }
-                        else {
+#if DEBUG
+                        else
                             Console.WriteLine($"{item.Type.ToString()} Message Dropped");
-                        }
+#endif
                     }
 
                     Thread.Sleep(1);

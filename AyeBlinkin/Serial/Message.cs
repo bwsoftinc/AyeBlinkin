@@ -5,9 +5,10 @@ namespace AyeBlinkin.Serial
         internal const byte INTERRUPT = 0xFF;
         internal static Command ExitSerialCom()         => new Command() { Raw = new byte[] { 0xFF, 0xFF, 0xFF }, Type = Type.Exit };
         internal static Command SetPattern(int value)   => new Command() { Raw = new byte[] { 0xFF, 0xFF, (byte)(value & 0xFF) }, Type = Type.Pattern };
-        internal static Command StreamStart()           => new Command() { Raw = new byte[] { 0xFF, 0xFF, 0xF0 }, Type = Type.StreamStart };
+        internal static Command StreamStart()           => new Command() { Raw = new byte[] { 0xFF, 0xF0, 0xFF }, Type = Type.StreamStart };
         internal static Command StreamEnd()             => new Command() { Raw = new byte[] { 0xFF, 0xFF, 0xFF }, Type = Type.StreamEnd };
         internal static Command GetPatterns()           => new Command() { Raw = new byte[] { 0xFF, 0xFE, 0x00 }, Type = Type.Init };
+        internal static Command SetLedNumber(int value) => new Command() { Raw = new byte[] { 0xFF, 0xFA, (byte)(value & 0xFF) }, Type = Type.NumberLeds };
         internal static Command SetRed(int value)       => new Command() { Raw = new byte[] { 0xFF, 0x00, (byte)(value & 0xFF) }, Type = Type.Red };
         internal static Command SetGreen(int value)     => new Command() { Raw = new byte[] { 0xFF, 0x01, (byte)(value & 0xFF) }, Type = Type.Green };
         internal static Command SetBlue(int value)      => new Command() { Raw = new byte[] { 0xFF, 0x02, (byte)(value & 0xFF) }, Type = Type.Blue };
@@ -24,7 +25,8 @@ namespace AyeBlinkin.Serial
             StreamStart,
             StreamEnd,
             Exit, 
-            Init
+            Init,
+            NumberLeds
         }
 
         internal struct Command {

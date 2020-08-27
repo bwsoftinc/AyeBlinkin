@@ -7,6 +7,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>DEBUG</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Program.ico"/>
     <EmbeddedResource Include="Resources\Settings.ico"/>

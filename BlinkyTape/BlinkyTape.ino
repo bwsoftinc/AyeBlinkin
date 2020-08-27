@@ -6,6 +6,7 @@
 #include "src/Patterns/Flashlight.h"
 
 // LED data array
+volatile uint8_t LED_COUNT = 20;
 struct CRGB leds[MAX_LEDS];   // Space to hold the LED data
 CLEDController* controller;   // LED controller
 Pattern* patterns[MAX_PATTERN_COUNT];
@@ -13,6 +14,7 @@ Pattern* patterns[MAX_PATTERN_COUNT];
 // Button interrupt counters
 volatile bool buttonUnhandled = false;
 volatile long buttonDownTime = 0;
+volatile bool interruptSerialLoop = false;
 
 // Brightness controls
 volatile uint8_t currentBrightness;
@@ -87,9 +89,15 @@ ISR(PCINT0_vect){
 ISR(TIMER4_OVF_vect) {
   if(buttonUnhandled && (millis() - buttonDownTime) > BUTTON_PATTERN_SWITCH_TIME) {
     buttonUnhandled = false;
+    interruptSerialLoop = true;
     setPattern(currentPattern+1);
     sendPattern();
   }
+}
+
+void setNumberLeds(uint8_t number) {
+  LED_COUNT = number % MAX_LEDS;
+  controller->setLeds(leds, LED_COUNT);
 }
 
 void setup(){
@@ -121,16 +129,18 @@ void setup(){
   loadPattern(&originalRainbow, "Original Rainbow");
   loadPattern(&shimmer, "Shimmer");
 
+  
   // Read in the last-used pattern and brightness
   setPattern(EEPROM.read(PATTERN_EEPROM_ADDRESS));
   setBrightness(EEPROM.read(BRIGHTNESS_EEPROM_ADDRESS));
-  controller = &(LEDS.addLeds<WS2811, LED_OUT, GRB>(leds, DEFAULT_LED_COUNT));
-  controller->setCorrection(TypicalLEDStrip);
+  controller = &LEDS.addLeds<WS2812B, LED_OUT, GRB>(leds, LED_COUNT);
+  //LEDS.setCorrection(TypicalLEDStrip);
+  //LEDS.setTemperature(Halogen);
   LEDS.show();
 }
 
 void loop() {
-  if(Serial.available() > 0) {    
+  if(!interruptSerialLoop && Serial.available() > 0) {    
     serialLoop(leds);
     return;
   }
@@ -138,4 +148,5 @@ void loop() {
   // Draw the current pattern
   patterns[currentPattern]->draw(leds);
   LEDS.show();
+  interruptSerialLoop = false;
 }

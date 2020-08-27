@@ -7,7 +7,6 @@ using System.ComponentModel;
 using AyeBlinkin.Serial;
 using AyeBlinkin.DirectX;
 using AyeBlinkin.Centroid;
-using AyeBlinkin.Forms.Controls;
 
 namespace AyeBlinkin.Forms
 {
@@ -20,21 +19,32 @@ namespace AyeBlinkin.Forms
         private CheckBox mirrorCheckbox;
         private NumericUpDown vertical;
         private NumericUpDown horizontal;
-
-        private TransparentPanel controlPanel;
+        private Panel controlPanel;
 
         internal SettingsForm() 
         { 
+            this.TopMost = true;
             InitializeComponent();
             Settings.Model.PropertyChanged += ResizeControls;
             Settings.Model.Adapters = DeviceEnumerator.GetAdapters();
             Settings.Model.SerialComs = SerialCom.GetUsbDevicePorts();
             Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.Mirror));
-            DominantColorForm.ShowSlice();
         }
 
-        protected override void OnShown(EventArgs e) => Settings.SettingsHwnd = this.Handle;
-        protected override void OnClosing(CancelEventArgs e) => Settings.SettingsHwnd = IntPtr.Zero;
+        protected override void OnShown(EventArgs e) 
+        {
+            Settings.SettingsHwnd = this.Handle;
+#if DEBUG
+            DominantColorForm.ShowSlice();
+#endif
+        }
+        
+        protected override void OnClosing(CancelEventArgs e) { 
+            Settings.SettingsHwnd = IntPtr.Zero;
+#if DEBUG
+            DominantColorForm.HideSlice();
+#endif
+        }
 
         private void ResizeControls(object sender, PropertyChangedEventArgs e) 
         {

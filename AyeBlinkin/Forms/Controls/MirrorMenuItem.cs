@@ -18,6 +18,7 @@ namespace AyeBlinkin.Forms.Controls
                 AutoSize = false,
                 BackColor = Color.Transparent,
                 Height = 18,
+                TabStop = true,
                 Width = 18,
                 Margin = Padding.Empty,
                 Padding = Padding.Empty

@@ -20,8 +20,8 @@ class Shimmer : public Pattern {
     void draw(CRGB * leds);
   
   private:
-    ShimmerDot shimmerDots[DEFAULT_LED_COUNT];
-
+    ShimmerDot shimmerDots[MAX_LEDS];
+    
     float color_temp_factor_r;
     float color_temp_factor_g;
     float color_temp_factor_b;

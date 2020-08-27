@@ -10,10 +10,8 @@ namespace AyeBlinkin.Serial
 {
     internal partial class SerialCom : IDisposable
     {
-        private const int maxTX = 192;
-        private volatile int remoteBufferLeft = maxTX;
-        private volatile bool XON = false;
         private SerialPort port;
+        private volatile bool XON = true;
         private CancellationTokenSource readCancel = new CancellationTokenSource();
 
         public void Dispose() {
@@ -51,6 +49,10 @@ namespace AyeBlinkin.Serial
                        Enqueue(Message.SetBlue(Settings.Model.Blue));
                        Enqueue(Message.SetBright(Settings.Model.Brightness));
                     }
+                    break;
+                case nameof(Settings.Model.HorizontalLEDs):
+                case nameof(Settings.Model.VerticalLEDs):
+                    Enqueue(Message.SetLedNumber(Settings.TotalLeds));
                     break;
                 case nameof(Settings.Model.Brightness):
                     Enqueue(Message.SetBright(Settings.Model.Brightness));

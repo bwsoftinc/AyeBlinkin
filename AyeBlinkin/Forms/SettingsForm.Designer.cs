@@ -27,7 +27,7 @@ namespace AyeBlinkin.Forms
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
-            this.Controls.Add(this.controlPanel = new TransparentPanel() {
+            this.Controls.Add(this.controlPanel = new Panel() {
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 Width = 300,
@@ -47,8 +47,8 @@ namespace AyeBlinkin.Forms
                       this.serial = makeComboBox(103, 66),
 
                                     makeLabel(18, 97, "LEDs (W , H)"),
-                  this.horizontal = makeNumericUpDown(103, 95),
-                    this.vertical = makeNumericUpDown(143, 95),
+                  this.horizontal = makeNumericUpDown(103, 95, 25),
+                    this.vertical = makeNumericUpDown(143, 95, 10),
 
                                     makeLabel(18, 123, "Mirror Display"),
               this.mirrorCheckbox = makeCheckBox(103, 126),
@@ -67,7 +67,7 @@ namespace AyeBlinkin.Forms
             this.mirrorCheckbox.AddBinding(nameof(this.mirrorCheckbox.Checked), nameof(Settings.Model.Mirror));
             this.audioCheckbox.AddBinding(nameof(this.audioCheckbox.Checked), nameof(Settings.Model.Audio));
 
-            this.Text = AyeBlinkin.Name;
+            this.Text = $"{AyeBlinkin.Name} - Settings (preview)";
             this.Icon = Icons.Program;
         }
 
@@ -83,12 +83,12 @@ namespace AyeBlinkin.Forms
                 Padding = Padding.Empty
             };
 
-        private NumericUpDown makeNumericUpDown(int left, int top) =>
+        private NumericUpDown makeNumericUpDown(int left, int top, int max) =>
             new NumericUpDown() {
                 Location = new Point(left, top),
                 DecimalPlaces = 0,
                 Minimum = 2,
-                Maximum = 20,
+                Maximum = max,
                 Width = 35,
                 Font = new Font(Font.FontFamily, 8),
                 AutoSize = false,

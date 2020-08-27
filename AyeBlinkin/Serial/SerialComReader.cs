@@ -43,14 +43,9 @@ namespace AyeBlinkin.Serial
 
                         ProcessMessage(messageBuffer.Skip(1).Take(ix-1));
                         messageBuffer = messageBuffer.Skip(ix + 1).ToList();
-                        XON = true;
                     } 
                     else 
-                    {
                         messageBuffer.RemoveAt(0);
-                        remoteBufferLeft = maxTX;
-                        XON = true;
-                    }
                 }
             }
         }
@@ -58,12 +53,17 @@ namespace AyeBlinkin.Serial
         private enum Command : byte {
             Patterns    = 0xFE,
             Brightness  = 0xFD,
-            Pattern     = 0xFC
+            Pattern     = 0xFC,
+            Continue    = 0xFB
         }
 
         private void ProcessMessage(IEnumerable<byte> message) 
         {
             switch(message.ElementAt(0)) {
+                case(byte)Command.Continue:
+                    XON = true;
+                    break;
+
                 case (byte)Command.Patterns:
                     var msg = new String(message.Skip(1).Select(Convert.ToChar).ToArray());
                     Settings.Model.Patterns = msg.Substring(0, msg.Length-1)

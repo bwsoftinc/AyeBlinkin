@@ -29,7 +29,10 @@ namespace AyeBlinkin.Forms
             Settings.Model.PropertyChanged += buildPatternOptions;
             Settings.Model.uiContext = SynchronizationContext.Current;
             this.trayIcon.MouseUp += LeftClickOpenMenu;
+            Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.HorizontalLEDs)); //get to send over seial
+#if DEBUG
             OpenSettingsForm(null, null);
+#endif
         }
 
         private ContextMenuStrip MakeContextMenuStrip() 
@@ -97,6 +100,9 @@ namespace AyeBlinkin.Forms
                     ShowCheckMargin = true,
                     ShowImageMargin = false
                 };
+
+                patterns.DropDown.Closing += (object s, ToolStripDropDownClosingEventArgs ea) =>
+                    ea.Cancel = ea.CloseReason == ToolStripDropDownCloseReason.ItemClicked;
 
                 var patternId = Settings.Model.PatternId;
                 patterns.DropDown.Items.AddRange(value.OrderBy(x => x.Value).Select(p => {

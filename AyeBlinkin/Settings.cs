@@ -14,9 +14,7 @@ namespace AyeBlinkin
 {
     internal static class Settings  
     {
-        internal volatile static int HorizontalLEDs = 2;
-        internal volatile static int VerticalLEDs = 2;
-        internal volatile static int TotalLeds = 4;
+        internal volatile static int TotalLeds = 6;
         internal volatile static int Scale = 1;
         internal volatile static IntPtr SettingsHwnd = IntPtr.Zero;
 
@@ -84,14 +82,16 @@ namespace AyeBlinkin
 
             [ConfigurationProperty("HorizontalLEDs", DefaultValue="2")]
             public int HorizontalLEDs { get => (int)this["HorizontalLEDs"]; set { 
-                this["HorizontalLEDs"] = Settings.HorizontalLEDs = value;
-                Settings.TotalLeds = value * VerticalLEDs * 2;
+                this["HorizontalLEDs"] = value;
+                Settings.TotalLeds = value + (VerticalLEDs * 2);
+                NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("VerticalLEDs", DefaultValue="2")]
             public int VerticalLEDs { get => (int)this["VerticalLEDs"]; set {
-                this["VerticalLEDs"] = Settings.VerticalLEDs = value;
-                Settings.TotalLeds = value * HorizontalLEDs * 2;
+                this["VerticalLEDs"] = value;
+                Settings.TotalLeds = (value * 2) + HorizontalLEDs;
+                NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("AdapterId", DefaultValue="")]
@@ -150,6 +150,7 @@ namespace AyeBlinkin
             } }
 
             //internal bindings (not saved to config)
+            public int PreviewLED = 0;
             private const int MinSettingsWindowHeight = 240; //150
             private const int MinSettingsWindowWidth = 320; //300
             public bool BrightBarEnabled {get => !Audio; set { } }
@@ -242,8 +243,7 @@ namespace AyeBlinkin
             }
 
             //init volatile copies
-            HorizontalLEDs = Model.HorizontalLEDs;
-            VerticalLEDs = Model.VerticalLEDs;
+            TotalLeds = (Model.VerticalLEDs * 2) + Model.HorizontalLEDs;
             Model.Mirror = false;
             bindingSource = new BindingSource(Model, null);
         }

@@ -1,6 +1,6 @@
+//#undef DEBUG
 using System;
 using System.Drawing;
-using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace AyeBlinkin.Centroid 
@@ -11,16 +11,15 @@ namespace AyeBlinkin.Centroid
         {
             public int previousMemberCount;
             public readonly int[] previousmean = new int[3];
-           
-            public Centroid() { }
+
             public Centroid(int r, int g, int b) { 
                 mean[0] = r;
                 mean[1] = g;
                 mean[2] = b;
             }
 
-            public void Recenter() {
-                if(members.Count == 0) return;
+            public bool Recenter() {
+                if(members.Count == 0) return false;
 
                 int i = 0, count = members.Count;
                 int[] c, totals = new int[3];
@@ -43,10 +42,16 @@ namespace AyeBlinkin.Centroid
                 previousMemberCount = memberCount;
                 memberCount = count;
                 members.Clear();
+
+                return previousMemberCount != memberCount
+                    || previousmean[0] != mean[0]
+                    || previousmean[1] != mean[1]
+                    || previousmean[2] != mean[2];
             }
         }
 
-        private static int distance(int[] a, int[] z) {
+        private static int distance(int[] a, int[] z) 
+        {
             var r = z[0]-a[0];
             var g = z[1]-a[1];
             var b = z[2]-a[2];
@@ -58,50 +63,41 @@ namespace AyeBlinkin.Centroid
         private class initialKs {
             public readonly Centroid[] Ks;
             private readonly int length;
+            public bool Recenter() 
+            {
+                var changed = false;
 
-            public void Recenter() {
-                for(var i = 0; i < length; i++)
-                    Ks[i].Recenter();
-            }
+                for(var i = 1; i < length; i++)
+                    if(Ks[i].Recenter())
+                        changed = true;
 
-            public bool CentersChanged() {
-                Centroid c;
-                for(var i = 0; i < length; i++) {
-                    c = Ks[i];
-                    if(c.memberCount == 0)
-                        continue;
-                    if(c.memberCount != c.previousMemberCount 
-                        || c.mean[0] != c.previousmean[0]
-                        || c.mean[1] != c.previousmean[1]
-                        || c.mean[2] != c.previousmean[2])
-                        return true;
-                }
-                return false;
+                return changed;
             }
 
             public initialKs() 
             {
-                length = 5;
-                Ks = new Centroid[5];
+                length = 4;
+                Ks = new Centroid[length];
                 
                 Ks[0] = new Centroid(60, 60, 60); //grays
-                Ks[1] = new Centroid(150, 60, 60); //r
-                Ks[2] = new Centroid(60, 150, 60); //g
-                Ks[3] = new Centroid(60, 60, 150); //b
-                Ks[4] = new Centroid(60, 150, 150); //c
+                Ks[1] = new Centroid(180, 60, 60); //r
+                Ks[2] = new Centroid(60, 180, 60); //g
+                Ks[3] = new Centroid(60, 60, 180); //b
+                //Ks[4] = new Centroid(60, 150, 150); //c
                 //Ks[5] = new Centroid(150, 60, 150); //m
                 //Ks[6] = new Centroid(150, 150, 60); //y
             }
         }
 
-        public static byte[] Calculate(ref byte[] memBuffer, ref Rectangle rec, int padding) 
+        public static byte[] Calculate(ref byte[] memBuffer, ref Rectangle[] recs, int recindex, int scan) 
         {
-            //var sw = new Stopwatch();
-            //sw.Start();
+            if(recindex >= recs.Length)
+                return new byte[0];
 
-            int key, r, g, b, x = 0, 
+            var rec = recs[recindex];
+            int key, r, g, b, x = 0, padding = 4 * (scan - rec.Width),
                 width = rec.Width, height = rec.Height,
-                end = width * height, ix = width * 4 * rec.Top + (rec.Left * 4);
+                end = width * height, ix = (((width * 4) + padding) * rec.Y) + (rec.X * 4);
 
             byte[] result = null;
             int[] mean = null;
@@ -117,17 +113,28 @@ namespace AyeBlinkin.Centroid
                     b = memBuffer[ix] 
                 };
 
-                key = r << 16 | g << 8 | b;
+                if(Math.Abs(r-g) <= grayThreshold 
+                    && Math.Abs(g-b) <= grayThreshold 
+                    && Math.Abs(r-b) <= grayThreshold) 
+                {
+                    init.Ks[0].members.Add(mean);
+                } 
+                else 
+                {
+                    key = r << 16 | g << 8 | b;
 
-                if(groups.ContainsKey(key))
-                    groups[key].Add(mean);
-                else
-                    groups.Add(key, new List<int[]>() { mean });
+                    if(groups.ContainsKey(key))
+                        groups[key].Add(mean);
+                    else
+                        groups.Add(key, new List<int[]>() { mean });
+                }
 
                 ix += 4;
                 if(++x % width == 0)
                     ix += padding;
             }
+
+            init.Ks[0].Recenter();
 
             //build clusters
             end = init.Ks.Length;
@@ -136,13 +143,6 @@ namespace AyeBlinkin.Centroid
                 foreach(var k in groups.Values) 
                 {
                     mean = k[0];
-
-                    if(Math.Abs(mean[0]-mean[1]) <= grayThreshold 
-                        && Math.Abs(mean[0]-mean[2]) <= grayThreshold 
-                        && Math.Abs(mean[2]-mean[1]) <= grayThreshold) {
-                        init.Ks[0].members.AddRange(k);
-                        continue;
-                    }
 
                     for(x = 1, key = int.MaxValue; x < end; x++) 
                     {
@@ -154,20 +154,37 @@ namespace AyeBlinkin.Centroid
                     }
                     target.members.AddRange(k);
                 }
-                
-                init.Recenter();
             }
-            while(r-- > 0 && init.CentersChanged());
+            while(init.Recenter() && r-- > 0);
 
-            //get dominant cluster
-            for(x = 1, key = 0, mean = init.Ks[0].mean, end = init.Ks.Length; x < end; x++) 
+            //get 1, 2 dominant clusters
+            for(x = 1, r = 0, key = 0, g = init.Ks[key].memberCount, end = init.Ks.Length; x < end; x++) 
             {
-                ix = init.Ks[x].memberCount;
-                if(key < ix) {
-                    key = ix;
-                    mean = init.Ks[x].mean;
+                b = init.Ks[x].memberCount; 
+                if(b == 0)
+                    continue;
+                if(key == 0 || b > g) {
+                    r = key;
+                    key = x;
+                    g = init.Ks[key].memberCount;
                 }
             }
+
+            mean = init.Ks[key].mean;
+            //reduce flicker for near split-dominance under 20 pixels by preferring the higher mean
+            /*
+            if(r != 0 && Math.Abs(init.Ks[r].memberCount - g) < 20) {
+                b = mean[0] + mean[1] + mean[2];
+                mean = init.Ks[r].mean;
+                if(b > mean[0] + mean[1] + mean[2])
+                    mean = init.Ks[key].mean;
+            }
+            */
+            
+            //integrate gray cluster at 1/3 weight
+            //mean[0] = (mean[0] * 2 + init.Ks[0].mean[0]) / 3;
+            //mean[1] = (mean[1] * 2 + init.Ks[0].mean[1]) / 3;
+            //mean[2] = (mean[2] * 2 + init.Ks[0].mean[2]) / 3;
 
             //rgb must be byte in range 0-254
             result = new byte[] { (byte)mean[0], (byte)mean[1], (byte)mean[2] };
@@ -175,13 +192,12 @@ namespace AyeBlinkin.Centroid
             if(result[1] == 0xFF) result[1] = 0xFE;
             if(result[2] == 0xFF) result[2] = 0xFE;
 
-            //Console.WriteLine(sw.Elapsed.TotalMilliseconds);
-
-            if(rec.X == 0 && rec.Y == 0) {
+#if DEBUG
+            if(recindex == Settings.Model.PreviewLED) {
                 DominantColorForm.setBackground(ref memBuffer, ref rec, padding);
                 DominantColorForm.setColors(init.Ks);
             }
-
+#endif
             return result;
         }
     }

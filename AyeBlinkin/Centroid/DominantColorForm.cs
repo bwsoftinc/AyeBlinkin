@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
@@ -18,38 +19,77 @@ namespace AyeBlinkin.Centroid
             }
         }
 
-        private static DominantColorForm slice = new DominantColorForm();
+        private static DominantColorForm slice = new DominantColorForm() { TopMost = true };
         private static TestPictureBox image;
         private static TestPanel colors;
+
+        private static Button next;
+        private static Button previous;
         private ToolTip tooltip = new ToolTip();
         private static List<tips> tooltips = new List<tips>();
         private DominantColorForm() 
         {
-            this.Controls.Add(image = new TestPictureBox() {
-                Dock = DockStyle.Fill,
-                SizeMode = PictureBoxSizeMode.Zoom
+            this.Controls.Add(previous = new Button() {
+                Text = "<",
+                Dock = DockStyle.Left,
+                Width = 20
             });
 
-            this.Controls.Add(colors = new TestPanel {
+            previous.Click += (object sender, EventArgs pre) =>
+                Settings.Model.PreviewLED--;
+
+            this.Controls.Add(image = new TestPictureBox() {
+                Dock = DockStyle.Fill,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty,
+                BorderStyle = BorderStyle.None
+            });
+
+            this.Controls.Add(next = new Button() {
+                Text = ">",
+                Dock = DockStyle.Right,
+                Width = 20
+            });
+
+            next.Click += (object sender, EventArgs nex) =>
+                Settings.Model.PreviewLED++;
+
+            this.Controls.Add(colors = new TestPanel() {
                 Dock = DockStyle.Bottom,
                 Height = 50
             });
 
             tooltip.SetToolTip(colors, "Color");
-            colors.MouseMove += delegate(object sender, MouseEventArgs e) 
+            colors.MouseMove += (object sender, MouseEventArgs e) =>
             {
                 var tip = tooltips.FirstOrDefault(x => x.rectangle.Contains(e.Location));
                 if(tip == null)
                     tooltip.Hide(colors);
-                else
-                    tooltip.Show($"RGB({tip.color.R},{tip.color.G},{tip.color.B})", colors, e.Location);
+                else {
+                    var location = new Point(e.Location.X + 9, e.Location.Y + 6);
+                    tooltip.Show($"RGB({tip.color.R},{tip.color.G},{tip.color.B})", colors, location);
+                }
             };
+
+            colors.MouseLeave += (object sender, EventArgs e) => tooltip.Hide(colors);
 
             this.Text = "Dominant Color";
             this.DoubleBuffered = true;
+            this.Padding = Padding.Empty;
         }
 
-        public static void ShowSlice() => slice.Show();
+        public static void HideSlice() {
+            if(!slice.IsDisposed)
+                slice.Close();
+        }
+        
+        public static void ShowSlice() {
+            if(slice.IsDisposed)
+                slice = new DominantColorForm();
+
+            slice.Show();
+        }
 
         internal static void setColors(CentroidBase[] ks) 
         {
@@ -98,7 +138,7 @@ namespace AyeBlinkin.Centroid
             if(!slice.IsHandleCreated) return;
 
             int w = area.Width, h = area.Height, x = 0, end = w * h, dx = 0,
-                ix = w * 4 * area.Top + (area.Left * 4);
+                ix = (((w * 4) + padding) * area.Y) + (area.X * 4);
 
             var background = new Bitmap(w, h, PixelFormat.Format24bppRgb);
             var data = background.LockBits(new Rectangle(0,0,w,h), ImageLockMode.ReadWrite, background.PixelFormat);
