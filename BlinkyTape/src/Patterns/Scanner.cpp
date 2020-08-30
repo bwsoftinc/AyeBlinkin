@@ -22,7 +22,6 @@ void Scanner::draw(CRGB* leds) {
   
   if(direction == 0) {
     position += 1;
-    
   }
   else {
     position -= 1;

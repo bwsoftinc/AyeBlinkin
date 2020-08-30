@@ -4,7 +4,7 @@ namespace AyeBlinkin.Serial
     {
         internal const byte INTERRUPT = 0xFF;
         internal static Command ExitSerialCom()         => new Command() { Raw = new byte[] { 0xFF, 0xFF, 0xFF }, Type = Type.Exit };
-        internal static Command SetPattern(int value)   => new Command() { Raw = new byte[] { 0xFF, 0xFF, (byte)(value & 0xFF) }, Type = Type.Pattern };
+        internal static Command SetPattern(int value)   => new Command() { Raw = new byte[] { 0xFF, 0xFC, (byte)(value & 0xFF) }, Type = Type.Pattern };
         internal static Command StreamStart()           => new Command() { Raw = new byte[] { 0xFF, 0xF0, 0xFF }, Type = Type.StreamStart };
         internal static Command StreamEnd()             => new Command() { Raw = new byte[] { 0xFF, 0xFF, 0xFF }, Type = Type.StreamEnd };
         internal static Command GetPatterns()           => new Command() { Raw = new byte[] { 0xFF, 0xFE, 0x00 }, Type = Type.Init };

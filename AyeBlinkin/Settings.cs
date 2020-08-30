@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using AyeBlinkin.DirectX;
+using AyeBlinkin.CoreAudio;
 
 namespace AyeBlinkin 
 {
@@ -146,6 +147,12 @@ namespace AyeBlinkin
             [ConfigurationProperty("Audio", DefaultValue="false")]
             public bool Audio { get => (bool)this["Audio"]; set {
                 this["Audio"] = value;
+
+                if(value)
+                    WasapiSoundCapture.Start();
+                else
+                    WasapiSoundCapture.Stop();
+
                 NotifyPropertyChanged();
             } }
 

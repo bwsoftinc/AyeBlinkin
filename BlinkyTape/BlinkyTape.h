@@ -2,8 +2,11 @@
 #define BLINKY_TAPE_H
 
 #include <EEPROM.h>
+#include <avr/pgmspace.h>
 #include <Arduino.h>
 #include <FastLED.h>
+
+#define patternStr(X, Y) strcpy_P(X, (char*)pgm_read_word(&(patternNames[Y])));
 
 // hardware defs
 #define LED_OUT       13
@@ -37,7 +40,7 @@ extern volatile uint8_t currentBrightness;
 extern volatile bool interruptSerialLoop;
 extern uint8_t currentPattern;
 extern uint8_t patternCount;
-extern char* patternNames[];
+extern const char* const patternNames[];
 
 class Pattern {
   public:

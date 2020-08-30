@@ -1,5 +1,7 @@
 #include "SerialLoop.h"
 
+char patternNameBuffer[20];
+
 void serialLoop(CRGB* leds) {
   bool playPattern = true;
   uint8_t ledIndex = 0, command0, command1, command2;
@@ -49,14 +51,18 @@ void serialLoop(CRGB* leds) {
       ledIndex = 0;
       playPattern = false;
 
-    } else if (command1 == INTERRUPT) {
-      if(playPattern = command2 < BUILTIN_PATTERN_LIMIT) {
+    } else if (command1 == CMD_PATTERN) {
+      if(playPattern = command2 < STREAMING_LIMIT) {
         setPattern(command2);
         return;
       }
 
-    } else
+    } else {
+      while(Serial.available() > 0)
+        Serial.read();
+
       return;
+    }
 
     LEDS.show();
   }
@@ -83,7 +89,8 @@ void sendPatterns() {
   Serial.write(INTERRUPT);
   Serial.write(CMD_PATTERNS);
   for(;i<patternCount;i++) {
-    Serial.write(patternNames[i]);
+    patternStr(patternNameBuffer, i);
+    Serial.write(patternNameBuffer);
     Serial.write(SERIAL_CR);
   }
   Serial.write(INTERRUPT);

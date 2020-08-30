@@ -3,7 +3,6 @@ using System.Windows.Forms;
 using System.ComponentModel;
 
 using AyeBlinkin.Resources;
-using AyeBlinkin.Forms.Controls;
 
 namespace AyeBlinkin.Forms
 {

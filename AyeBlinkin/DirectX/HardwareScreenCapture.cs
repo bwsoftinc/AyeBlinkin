@@ -29,7 +29,7 @@ using Message = AyeBlinkin.Serial.Message;
 
 namespace AyeBlinkin.DirectX 
 {
-    internal class HardwareScreenCapture : IDisposable 
+    internal class HardwareScreenCapture<T> : IDisposable where T : ICentroidColor, new()
     {
         private const int MAX_RECTANGLE_SIZE = 25;
         private Device device;
@@ -59,6 +59,7 @@ namespace AyeBlinkin.DirectX
         private List<int> range;
         private static readonly int WaitTimeout = SharpDX.DXGI.ResultCode.WaitTimeout.Result.Code;
         private static readonly PresentParameters presentParameters = new PresentParameters();
+        private ICentroidColor colorFinder;
 
         public void Dispose() 
         {
@@ -70,7 +71,6 @@ namespace AyeBlinkin.DirectX
                 device?.ImmediateContext.ClearRenderTargetView(renderTarget, SharpDX.Color.WhiteSmoke);
                 renderWindow?.Present(0, PresentFlags.None);
             }
-
 
             Settings.Model.PropertyChanged -= LedsChanged;
             fpsCounter?.Dispose();
@@ -93,7 +93,7 @@ namespace AyeBlinkin.DirectX
             cpuTexture?.Dispose();
         }
 
-        private HardwareScreenCapture()  { }
+        private HardwareScreenCapture() => colorFinder = new T();
 
         internal void Initialize() 
         {
@@ -194,9 +194,9 @@ namespace AyeBlinkin.DirectX
         {
             if(CheckRender(Settings.SettingsHwnd)) 
             {
-                device.ImmediateContext.CopyResource(cpuTexture, renderTexture);
-                renderOverlay.BeginDraw();
+                device.ImmediateContext.CopySubresourceRegion(gpuTexture, gpuTexture.Description.MipLevels - 1, null, renderTexture, 0);
                 
+                renderOverlay.BeginDraw();
                 renderOverlay.DrawText($"FPS: {fpsCounter.NextFPS():00.00}", fpsFont, fpsLocation, fpsColor);
                 
                 for(var i = 0; i < ledPoints.Length; i++) {
@@ -216,8 +216,8 @@ namespace AyeBlinkin.DirectX
                 }
 
                 //TODO: draw volume bar meter
-
                 renderOverlay.EndDraw();
+                
                 renderWindow.Present(0, PresentFlags.None, presentParameters);
             }
         }
@@ -377,14 +377,15 @@ namespace AyeBlinkin.DirectX
 
         private List<byte[]> CalculatePoints()
         {
-#if DEBUG
+#if POINTS_TIMER
             var sw = new Stopwatch();
             sw.Start();
 #endif
             var points = range.AsParallel().AsOrdered()
-                .Select(ix => DominantColorNP.Calculate(ref memBuffer, ref ledPoints, ix, renderBounds.Width))
+                .Select(ix => colorFinder.Calculate(ref memBuffer, ref ledPoints, ix, renderBounds.Width))
                 .ToList();
-#if DEBUG
+
+#if POINTS_TIMER
             Console.WriteLine(sw.Elapsed.TotalMilliseconds);
 #endif
             return points;
@@ -419,7 +420,7 @@ namespace AyeBlinkin.DirectX
         }
 
 #region Thread Loop
-        internal static void Run(object obj) 
+        internal static void Run(object obj)
         {
             Thread.CurrentThread.Name = "DXGI Capture";
             var token = (CancellationToken)obj;
@@ -427,14 +428,14 @@ namespace AyeBlinkin.DirectX
             byte[] points;
             int i, offset;
 
-            HardwareScreenCapture instance = null;
+            HardwareScreenCapture<T> instance = null;
             while(!token.IsCancellationRequested) 
             {
                 try 
                 {
                     if(instance == null) 
                     {
-                        instance = new HardwareScreenCapture();
+                        instance = new HardwareScreenCapture<T>();
                         instance.Initialize();
                         SerialCom.Enqueue(Message.StreamStart());
                     }

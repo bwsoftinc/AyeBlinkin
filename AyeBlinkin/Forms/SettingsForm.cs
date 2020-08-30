@@ -35,14 +35,14 @@ namespace AyeBlinkin.Forms
         {
             Settings.SettingsHwnd = this.Handle;
 #if DEBUG
-            DominantColorForm.ShowSlice();
+            CentroidColorForm.ShowSlice();
 #endif
         }
         
         protected override void OnClosing(CancelEventArgs e) { 
             Settings.SettingsHwnd = IntPtr.Zero;
 #if DEBUG
-            DominantColorForm.HideSlice();
+            CentroidColorForm.HideSlice();
 #endif
         }
 

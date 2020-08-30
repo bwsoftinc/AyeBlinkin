@@ -4,9 +4,12 @@
 #include "src/Patterns/Shimmer.h"
 #include "src/Patterns/Scanner.h"
 #include "src/Patterns/Flashlight.h"
+#include "src/Patterns/Fire.h"
+#include "src/Patterns/Pacifica.h"
+#include "src/Patterns/Rainbow.h"
 
 // LED data array
-volatile uint8_t LED_COUNT = 20;
+volatile uint8_t LED_COUNT = 45;
 struct CRGB leds[MAX_LEDS];   // Space to hold the LED data
 CLEDController* controller;   // LED controller
 Pattern* patterns[MAX_PATTERN_COUNT];
@@ -23,21 +26,45 @@ volatile uint8_t currentBrightnessStep;
 // Pattern controls
 uint8_t patternCount = 0;
 uint8_t currentPattern = 0;
-char* patternNames[MAX_PATTERN_COUNT];
 
 // Patterns
-ColorLoop originalRainbow(1,1,1);
 ColorLoop blueRainbow(.2,1,1);
-Scanner scanner(4, CRGB(255,0,0));
 Flashlight flashlight(CRGB(255,255,255));
+Scanner scanner(4, CRGB(255,0,0));
 Flashlight offlight(CRGB(0,0,0));
+ColorLoop originalRainbow(1,1,1);
 Shimmer shimmer(1,1,1);
+Fire fire(100, 55);
+Pacifica pacifica;
+Rainbow rainbowRun;
+
+const char blueRainbowName[]      PROGMEM = "Blue Rainbow Loop";
+const char flashlightName[]       PROGMEM = "Flashlight";
+const char scannerName[]          PROGMEM = "Knight Rider";
+const char offlightName[]         PROGMEM = "Off";
+const char originalRainbowName[]  PROGMEM = "Rainbow Loop";
+const char shimmerName[]          PROGMEM = "Shimmer";
+const char fireName[]             PROGMEM = "Fire";
+const char pacificaName[]         PROGMEM = "Pacifica";
+const char rainbowRunName[]       PROGMEM = "Rainbow Run";
+const char* const patternNames[]  PROGMEM = { //keep this order the same as patterns are loaded
+  blueRainbowName,
+  flashlightName,
+  scannerName,
+  offlightName,
+  originalRainbowName,
+  shimmerName,
+  fireName,
+  pacificaName,
+  rainbowRunName
+};
 
 // Register a pattern
-void loadPattern(Pattern* newPattern, char* name) {
-  if(patternCount >= MAX_PATTERN_COUNT) return;
+void loadPattern(Pattern* newPattern) {
+  if(patternCount >= MAX_PATTERN_COUNT) 
+    return;
+  
   patterns[patternCount] = newPattern;
-  patternNames[patternCount] = name;
   patternCount++;
 }
 
@@ -122,19 +149,21 @@ void setup(){
     EEPROM.write(BRIGHTNESS_EEPROM_ADDRESS, 0);
   }
 
-  loadPattern(&blueRainbow, "Blue Rainbow");
-  loadPattern(&flashlight, "Flashlight");
-  loadPattern(&scanner, "Knight Rider");
-  loadPattern(&offlight, "Off");
-  loadPattern(&originalRainbow, "Original Rainbow");
-  loadPattern(&shimmer, "Shimmer");
-
+  loadPattern(&blueRainbow);
+  loadPattern(&flashlight);
+  loadPattern(&scanner);
+  loadPattern(&offlight);
+  loadPattern(&originalRainbow);
+  loadPattern(&shimmer);
+  loadPattern(&fire);
+  loadPattern(&pacifica);
+  loadPattern(&rainbowRun);
   
   // Read in the last-used pattern and brightness
   setPattern(EEPROM.read(PATTERN_EEPROM_ADDRESS));
   setBrightness(EEPROM.read(BRIGHTNESS_EEPROM_ADDRESS));
   controller = &LEDS.addLeds<WS2812B, LED_OUT, GRB>(leds, LED_COUNT);
-  //LEDS.setCorrection(TypicalLEDStrip);
+  LEDS.setCorrection(TypicalLEDStrip);
   //LEDS.setTemperature(Halogen);
   LEDS.show();
 }

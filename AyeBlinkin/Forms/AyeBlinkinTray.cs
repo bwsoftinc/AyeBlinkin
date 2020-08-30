@@ -29,7 +29,7 @@ namespace AyeBlinkin.Forms
             Settings.Model.PropertyChanged += buildPatternOptions;
             Settings.Model.uiContext = SynchronizationContext.Current;
             this.trayIcon.MouseUp += LeftClickOpenMenu;
-            Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.HorizontalLEDs)); //get to send over seial
+            Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.HorizontalLEDs)); //get to send over serial
 #if DEBUG
             OpenSettingsForm(null, null);
 #endif
@@ -101,7 +101,7 @@ namespace AyeBlinkin.Forms
                     ShowImageMargin = false
                 };
 
-                patterns.DropDown.Closing += (object s, ToolStripDropDownClosingEventArgs ea) =>
+                patterns.DropDown.Closing += (s, ea) =>
                     ea.Cancel = ea.CloseReason == ToolStripDropDownCloseReason.ItemClicked;
 
                 var patternId = Settings.Model.PatternId;
@@ -112,8 +112,8 @@ namespace AyeBlinkin.Forms
                         Tag = p.Key
                     };
 
-                    item.Click += (object mi, EventArgs ea) =>
-                            Settings.Model.PatternId = (int)(mi as BindableToolStripMenuItem).Tag;
+                    item.Click += (mi, ea) =>
+                        Settings.Model.PatternId = (int)(mi as BindableToolStripMenuItem).Tag;
 
                     item.AddBinding(nameof(item.Enabled), nameof(Settings.Model.MirrorOff));
 

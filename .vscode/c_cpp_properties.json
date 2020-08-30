@@ -17,7 +17,7 @@
                 "__AVR_ATmega32U4__",
                 "FASTLED_HAS_CLOCKLESS"
             ],
-            "compilerPath": "/usr/bin/gcc",
+            "compilerPath": "${env:PROGRAMFILES(X86)}/Arduino/hardware/tools/avr/bin/avr-gcc",
             "cStandard": "c11",
             "cppStandard": "gnu++14",
             "intelliSenseMode": "gcc-x64",

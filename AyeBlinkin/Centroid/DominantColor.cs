@@ -3,9 +3,9 @@ using System;
 using System.Drawing;
 using System.Collections.Generic;
 
-namespace AyeBlinkin.Centroid 
+namespace AyeBlinkin.Centroid
 {
-    internal class DominantColorNP 
+    internal class DominantColor : ICentroidColor
     {
         internal class Centroid : CentroidBase 
         {
@@ -50,7 +50,16 @@ namespace AyeBlinkin.Centroid
             }
         }
 
-        private static int distance(int[] a, int[] z) 
+        private static int distance(int[] a, int[] z)
+        {
+            var rmean = (a[0] + z[0]) / 2;
+            var r = a[0] - z[0];
+            var g = a[1] - z[1];
+            var b = a[2] - z[2];
+            return (((512+rmean)*r*r)>>8) + 4*g*g + (((767-rmean)*b*b)>>8);
+        }
+
+        private static int euclidDistance(int[] a, int[] z) 
         {
             var r = z[0]-a[0];
             var g = z[1]-a[1];
@@ -58,18 +67,14 @@ namespace AyeBlinkin.Centroid
             return r*r + g*g + b*b;
         }
 
-        private const int grayThreshold = 30;
-
         private class initialKs {
             public readonly Centroid[] Ks;
             private readonly int length;
             public bool Recenter() 
             {
                 var changed = false;
-
-                for(var i = 1; i < length; i++)
-                    if(Ks[i].Recenter())
-                        changed = true;
+                for(var i = startCluster; i < length; i++)
+                    changed |= Ks[i].Recenter();
 
                 return changed;
             }
@@ -80,16 +85,20 @@ namespace AyeBlinkin.Centroid
                 Ks = new Centroid[length];
                 
                 Ks[0] = new Centroid(60, 60, 60); //grays
+
                 Ks[1] = new Centroid(180, 60, 60); //r
                 Ks[2] = new Centroid(60, 180, 60); //g
                 Ks[3] = new Centroid(60, 60, 180); //b
-                //Ks[4] = new Centroid(60, 150, 150); //c
-                //Ks[5] = new Centroid(150, 60, 150); //m
-                //Ks[6] = new Centroid(150, 150, 60); //y
+                //Ks[4] = new Centroid(60, 180, 180); //c
+                //Ks[5] = new Centroid(180, 60, 180); //m
+                //Ks[6] = new Centroid(180, 180, 60); //y
             }
         }
 
-        public static byte[] Calculate(ref byte[] memBuffer, ref Rectangle[] recs, int recindex, int scan) 
+        private const int startCluster = 1;
+        private const int grayThreshold = 10;
+
+        public byte[] Calculate(ref byte[] memBuffer, ref Rectangle[] recs, int recindex, int scan) 
         {
             if(recindex >= recs.Length)
                 return new byte[0];
@@ -144,9 +153,9 @@ namespace AyeBlinkin.Centroid
                 {
                     mean = k[0];
 
-                    for(x = 1, key = int.MaxValue; x < end; x++) 
+                    for(x = startCluster, key = int.MaxValue; x < end; x++) 
                     {
-                        ix = distance(init.Ks[x].mean, mean);
+                        ix = euclidDistance(init.Ks[x].mean, mean);
                         if(ix < key) {
                             key = ix;
                             target = init.Ks[x];
@@ -158,7 +167,7 @@ namespace AyeBlinkin.Centroid
             while(init.Recenter() && r-- > 0);
 
             //get 1, 2 dominant clusters
-            for(x = 1, r = 0, key = 0, g = init.Ks[key].memberCount, end = init.Ks.Length; x < end; x++) 
+            for(x = startCluster, r = 0, key = 0, g = init.Ks[key].memberCount, end = init.Ks.Length; x < end; x++) 
             {
                 b = init.Ks[x].memberCount; 
                 if(b == 0)
@@ -171,13 +180,14 @@ namespace AyeBlinkin.Centroid
             }
 
             mean = init.Ks[key].mean;
-            //reduce flicker for near split-dominance under 20 pixels by preferring the higher mean
-            /*
-            if(r != 0 && Math.Abs(init.Ks[r].memberCount - g) < 20) {
-                b = mean[0] + mean[1] + mean[2];
-                mean = init.Ks[r].mean;
-                if(b > mean[0] + mean[1] + mean[2])
-                    mean = init.Ks[key].mean;
+            //reduce flicker for dominance rivalry
+            /*if(r != 0 && (Math.Abs(init.Ks[r].memberCount - g) < 40 || init.Ks[r].memberCount + g < width * height / 2)) {
+                init.Ks[r].mean[0] = (mean[0] + init.Ks[r].mean[0]) / 2;
+                init.Ks[r].mean[1] = (mean[1] + init.Ks[r].mean[1]) / 2;
+                init.Ks[r].mean[2] = (mean[2] + init.Ks[r].mean[2]) / 2;
+                mean[0] = init.Ks[r].mean[0];
+                mean[1] = init.Ks[r].mean[1];
+                mean[2] = init.Ks[r].mean[2];
             }
             */
             
@@ -194,8 +204,8 @@ namespace AyeBlinkin.Centroid
 
 #if DEBUG
             if(recindex == Settings.Model.PreviewLED) {
-                DominantColorForm.setBackground(ref memBuffer, ref rec, padding);
-                DominantColorForm.setColors(init.Ks);
+                CentroidColorForm.setBackground(ref memBuffer, ref rec, padding);
+                CentroidColorForm.setColors(init.Ks);
             }
 #endif
             return result;

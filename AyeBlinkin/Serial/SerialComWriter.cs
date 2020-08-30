@@ -1,14 +1,13 @@
 using System;
 using System.Linq;
 using System.Threading;
-using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace AyeBlinkin.Serial 
 {
     internal partial class SerialCom : IDisposable
     {
-        private static Stopwatch sw = new Stopwatch();
+        private const int maxPacketSize = 48;
         private static object enqueueLock = new object();
         private static Queue<Message.Command> MessageQueue = new Queue<Message.Command>();
 
@@ -29,7 +28,10 @@ namespace AyeBlinkin.Serial
                 try
                 {
                     if(instance == null)
+                    {
                         instance = new SerialCom();
+                        instance.Initialize();
+                    }
 
                     if(instance.XON && MessageQueue.Count > 0) 
                     {
@@ -38,9 +40,9 @@ namespace AyeBlinkin.Serial
                         {
                             if(item.Type == Message.Type.Stream) 
                             {
-                                for(var x = 0; x < item.Raw.Length; x += 48) 
+                                for(var x = 0; x < item.Raw.Length; x += maxPacketSize) 
                                 {
-                                    instance.port.Write(item.Raw, x, Math.Min(48, item.Raw.Length - x));
+                                    instance.port.Write(item.Raw, x, Math.Min(maxPacketSize, item.Raw.Length - x));
                                     while(!instance.XON)
                                         Thread.Sleep(0);
                                 }

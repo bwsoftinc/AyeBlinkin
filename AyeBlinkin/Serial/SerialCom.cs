@@ -30,8 +30,12 @@ namespace AyeBlinkin.Serial
             port.DtrEnable = true;
 
             Settings.Model.PropertyChanged += SendPattern;
+        }
+        private void Initialize() {
             ThreadPool.QueueUserWorkItem(new WaitCallback(this.Reader), readCancel.Token);
-            Write(Message.Clear().Raw);
+            while(!readerStarted)
+                Thread.Sleep(10);
+
             Write(Message.GetPatterns().Raw);
         }
 

@@ -6,14 +6,18 @@ using System.Collections.Generic;
 
 namespace AyeBlinkin.Serial 
 {
+
+
     internal partial class SerialCom
     {
+        private bool readerStarted = false;
         private void Reader(object obj) {
             Thread.CurrentThread.Name = $"RX Message Loop";
             var token = (CancellationToken)obj;
 
             var messageBuffer = new List<byte>();
             var readBuffer = new byte[1024];
+            readerStarted = true;
 
             while(!token.IsCancellationRequested) 
             {
