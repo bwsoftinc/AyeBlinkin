@@ -6,8 +6,6 @@ using System.Collections.Generic;
 
 namespace AyeBlinkin.Serial 
 {
-
-
     internal partial class SerialCom
     {
         private bool readerStarted = false;

@@ -36,17 +36,17 @@ ColorLoop originalRainbow(1,1,1);
 Shimmer shimmer(1,1,1);
 Fire fire(100, 55);
 Pacifica pacifica;
-Rainbow rainbowRun;
+Rainbow rainbowShift(0 ,85, 170);
 
-const char blueRainbowName[]      PROGMEM = "Blue Rainbow Loop";
+const char blueRainbowName[]      PROGMEM = "Blue Rainbow Run";
 const char flashlightName[]       PROGMEM = "Flashlight";
 const char scannerName[]          PROGMEM = "Knight Rider";
 const char offlightName[]         PROGMEM = "Off";
-const char originalRainbowName[]  PROGMEM = "Rainbow Loop";
+const char originalRainbowName[]  PROGMEM = "Rainbow Run";
 const char shimmerName[]          PROGMEM = "Shimmer";
 const char fireName[]             PROGMEM = "Fire";
 const char pacificaName[]         PROGMEM = "Pacifica";
-const char rainbowRunName[]       PROGMEM = "Rainbow Run";
+const char rainbowShiftName[]       PROGMEM = "Rainbow Shift";
 const char* const patternNames[]  PROGMEM = { //keep this order the same as patterns are loaded
   blueRainbowName,
   flashlightName,
@@ -56,7 +56,7 @@ const char* const patternNames[]  PROGMEM = { //keep this order the same as patt
   shimmerName,
   fireName,
   pacificaName,
-  rainbowRunName
+  rainbowShiftName
 };
 
 // Register a pattern
@@ -157,7 +157,7 @@ void setup(){
   loadPattern(&shimmer);
   loadPattern(&fire);
   loadPattern(&pacifica);
-  loadPattern(&rainbowRun);
+  loadPattern(&rainbowShift);
   
   // Read in the last-used pattern and brightness
   setPattern(EEPROM.read(PATTERN_EEPROM_ADDRESS));

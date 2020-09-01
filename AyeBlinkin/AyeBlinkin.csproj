@@ -9,7 +9,7 @@
     <ApplicationIcon>Resources/Program.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DefineConstants></DefineConstants>
+    <DefineConstants>PARALLEL,DEBUG</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Program.ico"/>

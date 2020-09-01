@@ -1,54 +1,75 @@
-//#undef DEBUG
-using System.Drawing;
+using System;
 
 namespace AyeBlinkin.Centroid 
 {
-    internal class AverageColor : ICentroidColor
+    internal class AverageColor : CentroidBase
     {
-        private const int startCluster = 1;
-        private const int grayThreshold = 10;
+        private byte[] centroidMean;
 
-        public byte[] Calculate(ref byte[] memBuffer, ref Rectangle[] recs, int recindex, int scan) 
+        public AverageColor() 
         {
-            if(recindex >= recs.Length)
-                return new byte[0];
+            Clusters = new CentroidColor[2] {
+                new CentroidColor(),
+                new CentroidColor()
+            };
+        }
 
-            var rec = recs[recindex];
-            int r = 0, g = 0, b = 0, x = 0, padding = 4 * (scan - rec.Width),
-                width = rec.Width, end = width * rec.Height, 
-                ix = (((width * 4) + padding) * rec.Y) + (rec.X * 4);
+        protected override void Implementation()
+        {
+            byte r, g, b;
+            int r1 = 0, g1 = 0, b1 = 0, r2 = 0, g2 = 0, b2 = 0, 
+                i = 0, ix = bufferIndex, count = end;
 
-            while(x < end) {
-                r += memBuffer[ix+2];
-                g += memBuffer[ix+1];
-                b += memBuffer[ix]; 
+            while(i < end) {
+                r = buffer[ix+2];
+                g = buffer[ix+1];
+                b = buffer[ix]; 
+
+                if(isGray(r, g, b)) {
+                    r1 += r;
+                    g1 += g;
+                    b1 += b;
+                    count--;
+                } else {
+                    r2 += r;
+                    g2 += g;
+                    b2 += b;
+                }
 
                 ix += 4;
-                if(++x % width == 0)
+                if(++i % width == 0)
                     ix += padding;
             }
 
-            var result = new byte[] { (byte)(r/end), (byte)(g/end), (byte)(b/end) };
-
-#if DEBUG
-            if(recindex == Settings.Model.PreviewLED) 
-            {
-                CentroidBase target = new CentroidBase() { memberCount = 1 };
-                
-                target.mean[0] = result[0];
-                target.mean[1] = result[1];
-                target.mean[2] = result[2];
-                
-                CentroidColorForm.setBackground(ref memBuffer, ref rec, padding);
-                CentroidColorForm.setColors(new CentroidBase[] { target });
+            if(count != 0) {
+                Clusters[1].mean[0]= (byte)(r2 / count);
+                Clusters[1].mean[1] = (byte)(g2 / count);
+                Clusters[1].mean[2] = (byte)(b2 / count);
+                Clusters[1].memberCount = count;
+            } else {
+                Clusters[1].mean[0] = 0;
+                Clusters[1].mean[1] = 0;
+                Clusters[1].mean[2] = 0;
+                Clusters[1].memberCount = 0;
             }
-#endif
-            //rgb must be byte in range 0-254
-            if(result[0] == 0xFF) result[0] = 0xFE;
-            if(result[1] == 0xFF) result[1] = 0xFE;
-            if(result[2] == 0xFF) result[2] = 0xFE;
 
-            return result;
+            count = end - count;
+            if(count != 0) {
+                Clusters[0].mean[0] = (byte)(r1 / count);
+                Clusters[0].mean[1] = (byte)(g1 / count);;
+                Clusters[0].mean[2] = (byte)(b1 / count);;
+                Clusters[0].memberCount = count;
+            } else {
+                Clusters[0].mean[0] = 0;
+                Clusters[0].mean[1] = 0;
+                Clusters[0].mean[2] = 0;
+                Clusters[0].memberCount = 0;
+            }
+
+            centroidMean = Clusters[count == end? 0 : 1].mean;
+            mean[0] = centroidMean[0];
+            mean[1] = centroidMean[1];
+            mean[2] = centroidMean[2];
         }
     }
 }

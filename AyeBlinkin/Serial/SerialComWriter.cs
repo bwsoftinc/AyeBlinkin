@@ -40,6 +40,7 @@ namespace AyeBlinkin.Serial
                         {
                             if(item.Type == Message.Type.Stream) 
                             {
+                                //under 1ms to tx and get confirmation of entire frame
                                 for(var x = 0; x < item.Raw.Length; x += maxPacketSize) 
                                 {
                                     instance.port.Write(item.Raw, x, Math.Min(maxPacketSize, item.Raw.Length - x));

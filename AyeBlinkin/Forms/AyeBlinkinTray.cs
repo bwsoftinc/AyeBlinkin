@@ -140,7 +140,7 @@ namespace AyeBlinkin.Forms
 
         private void OpenSettingsForm(object sender, EventArgs e) {
             if(settingsForm.IsDisposed)
-                settingsForm = new SettingsForm();
+                settingsForm = new SettingsForm(false);
             if(!settingsForm.Visible)
                 settingsForm.Show();
         }

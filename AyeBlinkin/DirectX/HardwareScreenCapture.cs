@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Diagnostics;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Rectangle = System.Drawing.Rectangle;
@@ -29,7 +30,7 @@ using Message = AyeBlinkin.Serial.Message;
 
 namespace AyeBlinkin.DirectX 
 {
-    internal class HardwareScreenCapture<T> : IDisposable where T : ICentroidColor, new()
+    internal class HardwareScreenCapture<T> : IDisposable where T : CentroidBase, new()
     {
         private const int MAX_RECTANGLE_SIZE = 25;
         private Device device;
@@ -54,12 +55,9 @@ namespace AyeBlinkin.DirectX
         private byte[] memBuffer;
         private GCHandle pinnedMemBuffer;
         private IntPtr ptrMemBuffer;
-        private int stride; // width * 4 (argb)
-        private Rectangle[] ledPoints;
-        private List<int> range;
+        private CentroidBase[] ledPoints;
         private static readonly int WaitTimeout = SharpDX.DXGI.ResultCode.WaitTimeout.Result.Code;
         private static readonly PresentParameters presentParameters = new PresentParameters();
-        private ICentroidColor colorFinder;
 
         public void Dispose() 
         {
@@ -93,7 +91,7 @@ namespace AyeBlinkin.DirectX
             cpuTexture?.Dispose();
         }
 
-        private HardwareScreenCapture() => colorFinder = new T();
+        private HardwareScreenCapture() { }
 
         internal void Initialize() 
         {
@@ -153,8 +151,7 @@ namespace AyeBlinkin.DirectX
                 SwapEffect = SwapEffect.Discard
             };
 
-            stride = renderBounds.Width * 4;
-            memBuffer = new byte[renderBounds.Height * stride];
+            memBuffer = new byte[renderBounds.Height * renderBounds.Width * 4];
             pinnedMemBuffer = GCHandle.Alloc(memBuffer, GCHandleType.Pinned);
             ptrMemBuffer = pinnedMemBuffer.AddrOfPinnedObject();
             
@@ -203,15 +200,15 @@ namespace AyeBlinkin.DirectX
                     var r = points[(i*3)] / 255F;
                     var g = points[(i*3)+1] / 255F;
                     var b = points[(i*3)+2] / 255F;
-                    var rec = ledPoints[i];
-                    var x = rec.Width / 2F;
-                    var y = rec.Height / 2F;
+                    var point = ledPoints[i];
+                    var x = point.width / 2F;
+                    var y = point.height / 2F;
 
-                    var selected = i == Settings.Model.PreviewLED? 1F : 0F;
+                    var selected = i == Settings.PreviewLED? 1F : 0F;
                     using(var color = new SolidColorBrush(renderOverlay, new Color4(r, g, b, 1F)))
                     using(var outline = new SolidColorBrush(renderOverlay, new Color4(selected, selected, selected, 1F))) {
-                        renderOverlay.FillEllipse(new Ellipse(new RawVector2(rec.X + x, rec.Y + y), x/2, y/2), color);
-                        renderOverlay.DrawEllipse(new Ellipse(new RawVector2(rec.X + x, rec.Y + y), x/2, y/2), outline);
+                        renderOverlay.FillEllipse(new Ellipse(new RawVector2(point.x + x, point.y + y), x/2, y/2), color);
+                        renderOverlay.DrawEllipse(new Ellipse(new RawVector2(point.x + x, point.y + y), x/2, y/2), outline);
                     }
                 }
 
@@ -294,7 +291,6 @@ namespace AyeBlinkin.DirectX
                 case nameof(Settings.Model.VerticalLEDs):
                 case nameof(Settings.Model.Mirror):
                     generateRecPoints();
-                    SerialCom.Enqueue(Message.StreamStart());
                     break;
             }
         }
@@ -302,7 +298,7 @@ namespace AyeBlinkin.DirectX
         private void generateRecPoints() 
         {
             const int padding = 2;
-            var points = new List<Rectangle>();
+            var points = new List<T>();
 
             var w = renderBounds.Width - (2 * padding);
             var hcount = Settings.Model.HorizontalLEDs;
@@ -316,14 +312,23 @@ namespace AyeBlinkin.DirectX
                 if(wmod-- > 0)
                     paddedWidth++;
 
-                var r = new Rectangle(x, padding, paddedWidth, MAX_RECTANGLE_SIZE);
+                var r = new T() { 
+                    buffer = memBuffer,
+                    stride = renderBounds.Width,
+                    rectangle = new Rectangle(x, padding, paddedWidth, MAX_RECTANGLE_SIZE)
+                };
+
                 x += paddedWidth;
                 return r;
             }).ToList();
 
             var y = renderBounds.Height - padding - MAX_RECTANGLE_SIZE;
             var bottomleftright = topleftright
-                .Select(r => new Rectangle(r.X, y, r.Width, r.Height))
+                .Select(r => new T() {
+                    buffer = memBuffer,
+                    stride = renderBounds.Width,
+                    rectangle = new Rectangle(r.x, y, r.width, r.height)
+                })
                 .ToList();
 
 
@@ -339,56 +344,58 @@ namespace AyeBlinkin.DirectX
                 if(hmod-- > 0) 
                     paddedHeight++;
 
-                var r = new Rectangle(padding, y, MAX_RECTANGLE_SIZE, paddedHeight);
+                var r = new T() {
+                    buffer = memBuffer,
+                    stride = renderBounds.Width,
+                    rectangle = new Rectangle(padding, y, MAX_RECTANGLE_SIZE, paddedHeight)
+                };
                 y += paddedHeight;
                 return r;
             }).ToList();
 
             x = renderBounds.Width - padding - MAX_RECTANGLE_SIZE;
             var righttopbottom = lefttopbottom
-                .Select(r => new Rectangle(x, r.Y, r.Width, r.Height))
+                .Select(r => new T() {
+                    buffer = memBuffer,
+                    stride = renderBounds.Width,
+                    rectangle = new Rectangle(x, r.y, r.width, r.height)
+                })
                 .ToList();
 
             points.AddRange(lefttopbottom.AsEnumerable().Reverse());
             points.AddRange(topleftright);
             points.AddRange(righttopbottom);
-
             //points.AddRange(bottomleftright.AsEnumerable().Reverse());
+
+            for(var i = 0; i < points.Count; i++)
+                points[i].pointIndex = i;
+
             ledPoints = points.ToArray();
-            range = Enumerable.Range(0, ledPoints.Length).ToList();
         }
 
         private void TransferFrameCPU() 
         {
             var source = device.ImmediateContext.MapSubresource(cpuTexture, 0, MapMode.Read, MapFlags.None);
             var sourcePtr = source.DataPointer;
+            var pitch = source.RowPitch;
             var destPtr = ptrMemBuffer;
+            var width = renderBounds.Width * 4;
             var height = renderBounds.Height;
-
-            for (int i = 0; i < height; i++)
+#if PARALLEL
+            Parallel.For(0, height, x => Utilities.CopyMemory(
+                IntPtr.Add(destPtr, width * x),
+                IntPtr.Add(sourcePtr, pitch * x),
+                width));
+#else
+            for(var i = 0; i < height; i++) 
             {
-                Utilities.CopyMemory(destPtr, sourcePtr, stride);
-                sourcePtr = IntPtr.Add(sourcePtr, source.RowPitch);
-                destPtr = IntPtr.Add(destPtr, stride);
+                Utilities.CopyMemory(destPtr, sourcePtr, width);
+                destPtr = IntPtr.Add(destPtr, width);
+                sourcePtr = IntPtr.Add(sourcePtr, pitch);
             }
+#endif
 
             device.ImmediateContext.UnmapSubresource(cpuTexture, 0);
-        }
-
-        private List<byte[]> CalculatePoints()
-        {
-#if POINTS_TIMER
-            var sw = new Stopwatch();
-            sw.Start();
-#endif
-            var points = range.AsParallel().AsOrdered()
-                .Select(ix => colorFinder.Calculate(ref memBuffer, ref ledPoints, ix, renderBounds.Width))
-                .ToList();
-
-#if POINTS_TIMER
-            Console.WriteLine(sw.Elapsed.TotalMilliseconds);
-#endif
-            return points;
         }
 
         private class AvgFPSCounter : IDisposable
@@ -424,10 +431,9 @@ namespace AyeBlinkin.DirectX
         {
             Thread.CurrentThread.Name = "DXGI Capture";
             var token = (CancellationToken)obj;
-            List<byte[]> results;
-            byte[] points;
-            int i, offset;
-
+            
+            int i, ix;
+            byte[] points, color;
             HardwareScreenCapture<T> instance = null;
             while(!token.IsCancellationRequested) 
             {
@@ -438,18 +444,32 @@ namespace AyeBlinkin.DirectX
                         instance = new HardwareScreenCapture<T>();
                         instance.Initialize();
                         SerialCom.Enqueue(Message.StreamStart());
+                        //first call always seems to return an empty (black) screen
+                        //so consume it here during init
+                        instance.CaptureFrameGPU(); 
                     }
 
                     if(instance.CaptureFrameGPU()) 
                     {
+#if DOT_TIMER
+                        var sw = new Stopwatch();
+                        sw.Start();
+#endif
                         instance.TransferFrameCPU();
-                        results = instance.CalculatePoints();
-                        points = new byte[results.Count * 3];
+#if PARALLEL
+                        Parallel.ForEach(instance.ledPoints, x => x.Calculate());
+#else
+                        for(i = 0; i < instance.ledPoints.Length; i++)
+                            instance.ledPoints[i].Calculate();
+#endif
+                        points = new byte[instance.ledPoints.Length * 3];
 
-                        for(i = 0, offset = 0; i < results.Count; i++) 
+                        for(i = 0, ix = 0; i < instance.ledPoints.Length; ++i, ix = i * 3) 
                         {
-                            System.Buffer.BlockCopy(results[i], 0, points, offset, 3);
-                            offset += 3;
+                            color = instance.ledPoints[i].mean;
+                            points[ix]   = color[0];
+                            points[ix+1] = color[1];
+                            points[ix+2] = color[2];
                         }
 
                         if(token.IsCancellationRequested)
@@ -459,7 +479,9 @@ namespace AyeBlinkin.DirectX
                             Type = Message.Type.Stream,
                             Raw = points
                         });
-
+#if DOT_TIMER
+                        Console.WriteLine(sw.Elapsed.TotalMilliseconds);
+#endif
                         instance.Render(points);                        
                     }
                 }

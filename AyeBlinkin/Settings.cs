@@ -15,9 +15,10 @@ namespace AyeBlinkin
 {
     internal static class Settings  
     {
-        internal volatile static int TotalLeds = 6;
-        internal volatile static int Scale = 1;
-        internal volatile static IntPtr SettingsHwnd = IntPtr.Zero;
+        public volatile static int PreviewLED;
+        public volatile static int TotalLeds = 6;
+        public volatile static int Scale = 1;
+        public volatile static IntPtr SettingsHwnd = IntPtr.Zero;
 
         internal class BindingModel : ConfigurationSection, INotifyPropertyChanged 
         {
@@ -157,7 +158,6 @@ namespace AyeBlinkin
             } }
 
             //internal bindings (not saved to config)
-            public int PreviewLED = 0;
             private const int MinSettingsWindowHeight = 240; //150
             private const int MinSettingsWindowWidth = 320; //300
             public bool BrightBarEnabled {get => !Audio; set { } }

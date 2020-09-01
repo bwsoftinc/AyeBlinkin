@@ -21,7 +21,7 @@ namespace AyeBlinkin
 
         static AyeBlinkin() {
             com = new WaitCallback(SerialCom.Run);
-            screen = new WaitCallback(HardwareScreenCapture<DominantColor>.Run);
+            screen = new WaitCallback(HardwareScreenCapture<ClassifiedColor>.Run);
         }
 
         [STAThread]

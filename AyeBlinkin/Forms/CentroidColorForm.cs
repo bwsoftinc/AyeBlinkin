@@ -5,7 +5,9 @@ using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using System.Collections.Generic;
 
-namespace AyeBlinkin.Centroid 
+using AyeBlinkin.Centroid;
+
+namespace AyeBlinkin.Forms 
 {
     public class CentroidColorForm : Form 
     {
@@ -20,7 +22,7 @@ namespace AyeBlinkin.Centroid
             }
         }
 
-        private static CentroidColorForm slice = new CentroidColorForm() { TopMost = true };
+        private static CentroidColorForm slice = new CentroidColorForm() { TopMost = true, ShowInTaskbar = false };
         private static TestPanel colors;
         private static TestPictureBox image;
         private static Button next;
@@ -36,7 +38,7 @@ namespace AyeBlinkin.Centroid
                 Width = 20
             });
 
-            previous.Click += (sender, pre) => Settings.Model.PreviewLED--;
+            previous.Click += (sender, pre) => Settings.PreviewLED--;
 
             this.Controls.Add(image = new TestPictureBox() {
                 Dock = DockStyle.Fill,
@@ -52,7 +54,7 @@ namespace AyeBlinkin.Centroid
                 Width = 20
             });
 
-            next.Click += (sender, nex) => Settings.Model.PreviewLED++;
+            next.Click += (sender, nex) => Settings.PreviewLED++;
 
             this.Controls.Add(colors = new TestPanel() {
                 Dock = DockStyle.Bottom,
@@ -90,14 +92,22 @@ namespace AyeBlinkin.Centroid
             slice.Show();
         }
 
-        internal static void setColors(CentroidBase[] ks) 
+        internal static void Update(CentroidBase c) {
+            if(slice.IsDisposed)
+                return;
+                
+            setBackground(c);
+            setColors(c.Clusters);
+        }
+
+        private static void setColors(CentroidColor[] clusters) 
         {
             if(!colors.IsHandleCreated) 
                 return;
 
             if(colors.InvokeRequired) 
             {
-                try { colors.Invoke((MethodInvoker)(() => setColors(ks))); } catch { }
+                try { colors.Invoke((MethodInvoker)(() => setColors(clusters))); } catch { }
                 return;
             }
 
@@ -107,9 +117,9 @@ namespace AyeBlinkin.Centroid
             {
                 int w, x = 0;
                 var width = colors.Width;
-                var total = ks.Sum(z => z.memberCount);
-                var pad = width - ks.Sum(z => width * z.memberCount / total);
-                foreach(var k in ks.Where(z => z.memberCount > 0).OrderByDescending(z => z.memberCount)) 
+                var total = clusters.Sum(z => z.memberCount);
+                var pad = width - clusters.Sum(z => width * z.memberCount / total);
+                foreach(var k in clusters.Where(z => z.memberCount > 0).OrderByDescending(z => z.memberCount)) 
                 {
                     w = width * k.memberCount / total;
                     if(pad > 0) {
@@ -131,31 +141,29 @@ namespace AyeBlinkin.Centroid
             colors.Update();
         }
 
-        internal static void setBackground(ref byte[] buffer, ref Rectangle area, int padding) 
+        private static void setBackground(CentroidBase c) 
         {
             if(!slice.IsHandleCreated) return;
 
-            int w = area.Width, h = area.Height, x = 0, end = w * h, dx = 0,
-                ix = (((w * 4) + padding) * area.Y) + (area.X * 4);
-
-            var background = new Bitmap(w, h, PixelFormat.Format24bppRgb);
-            var data = background.LockBits(new Rectangle(0,0,w,h), ImageLockMode.ReadWrite, background.PixelFormat);
+            int i = 0, dx = 0, ix = c.bufferIndex;
+            var background = new Bitmap(c.width, c.height, PixelFormat.Format24bppRgb);
+            var data = background.LockBits(new Rectangle(0,0,c.width,c.height), ImageLockMode.ReadWrite, background.PixelFormat);
 
             unsafe 
             {
                 byte* bmp = (byte*)data.Scan0.ToPointer();
-                while(x++ < end) 
+                while(i++ < c.end) 
                 {
-                    bmp[dx] = buffer[ix];
-                    bmp[dx+1] = buffer[ix+1];
-                    bmp[dx+2] = buffer[ix+2];
+                    bmp[dx] = c.buffer[ix];
+                    bmp[dx+1] = c.buffer[ix+1];
+                    bmp[dx+2] = c.buffer[ix+2];
 
                     ix += 4;
                     dx += 3;
-                    if(x % area.Width == 0) 
+                    if(i % c.width == 0) 
                     {
-                        ix += padding;
-                        dx += data.Stride-(w*3);
+                        ix += c.padding;
+                        dx += data.Stride - (c.width * 3);
                     }
                 }
             }

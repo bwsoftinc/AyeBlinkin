@@ -21,14 +21,18 @@ namespace AyeBlinkin.Forms
         private NumericUpDown horizontal;
         private Panel controlPanel;
 
-        internal SettingsForm() 
+        internal SettingsForm(bool init = true) 
         { 
-            this.TopMost = true;
+            ShowInTaskbar = false;
+            TopMost = true;
             InitializeComponent();
             Settings.Model.PropertyChanged += ResizeControls;
             Settings.Model.Adapters = DeviceEnumerator.GetAdapters();
-            Settings.Model.SerialComs = SerialCom.GetUsbDevicePorts();
-            Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.Mirror));
+            if(init) 
+            {
+                Settings.Model.SerialComs = SerialCom.GetUsbDevicePorts();
+                Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.Mirror));
+            }
         }
 
         protected override void OnShown(EventArgs e) 
