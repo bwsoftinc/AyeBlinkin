@@ -7,22 +7,18 @@ using AyeBlinkin.Forms;
 using AyeBlinkin.Serial;
 using AyeBlinkin.DirectX;
 using AyeBlinkin.Centroid;
+using Message = AyeBlinkin.Serial.Message;
 
 namespace AyeBlinkin 
 {
     static class AyeBlinkin 
     {
-        private static AyeBlinkinTray trayApp;
-        private static CancellationTokenSource comThreadCancel;
-        private static CancellationTokenSource screenThreadCancel;
-        private static readonly WaitCallback com;
-        private static readonly WaitCallback screen;
         internal static string Name { get; } = Assembly.GetExecutingAssembly().GetName().Name;
-
-        static AyeBlinkin() {
-            com = new WaitCallback(SerialCom.Run);
-            screen = new WaitCallback(HardwareScreenCapture<ClassifiedColor>.Run);
-        }
+        private static SerialCom serial;
+        private static AyeBlinkinTray trayApp;
+        private static readonly WaitCallback screen;
+        private static CancellationTokenSource screenThreadCancel;
+        static AyeBlinkin() => screen = new WaitCallback(HardwareScreenCapture<ClassifiedColor>.Run);
 
         [STAThread]
         static void Main() 
@@ -31,13 +27,22 @@ namespace AyeBlinkin
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.ApplicationExit += new EventHandler(OnExit);
-
-            StartStopScreenThread();
             Application.Run(trayApp = new AyeBlinkinTray());
         }
 
-        internal static void StartStopComThread() => StartStop(!string.IsNullOrWhiteSpace(Settings.Model.SerialComId), com, ref comThreadCancel);
+        internal static void StartStopComThread() 
+        {
+            serial?.Dispose();
+            if(!string.IsNullOrWhiteSpace(Settings.ComPort))
+            {
+                serial = new SerialCom();
+                SerialCom.Enqueue(Message.SetLedNumber(Settings.TotalLeds));
+                SerialCom.Enqueue(Message.GetPatterns());
+            }
+        }
+        
         internal static void StartStopScreenThread() => StartStop(Settings.Model.Mirror, screen, ref screenThreadCancel);
+
         private static void StartStop(bool start, WaitCallback job, ref CancellationTokenSource cancel) 
         {            
             if(!start) 
@@ -60,10 +65,8 @@ namespace AyeBlinkin
             Settings.SettingsHwnd = IntPtr.Zero;
 
             try { screenThreadCancel?.Cancel(); } catch { }
-            try { comThreadCancel?.Cancel(); } catch { }
-            
             screenThreadCancel?.Dispose();
-            comThreadCancel?.Dispose();
+            serial?.Dispose();
 
             Settings.SaveToDisk();
             trayApp.hideIcon();

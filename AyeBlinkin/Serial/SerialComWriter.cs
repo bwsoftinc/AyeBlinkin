@@ -18,22 +18,15 @@ namespace AyeBlinkin.Serial
 
         private void Write(byte[] bytes) => port.Write(bytes, 0, bytes.Length);
 
-        internal static void Run(object obj) {
+        private void Writer(object obj) {
             Thread.CurrentThread.Name = "TX Message Loop";
             var token = (CancellationToken)obj;
             
-            SerialCom instance = null;
             while(!token.IsCancellationRequested) 
             {
                 try
                 {
-                    if(instance == null)
-                    {
-                        instance = new SerialCom();
-                        instance.Initialize();
-                    }
-
-                    if(instance.XON && MessageQueue.Count > 0) 
+                    if(MessageQueue.Count > 0) 
                     {
                         var item = MessageQueue.Dequeue();
                         if(!MessageQueue.Any(x => x.Type == item.Type)) 
@@ -43,13 +36,12 @@ namespace AyeBlinkin.Serial
                                 //under 1ms to tx and get confirmation of entire frame
                                 for(var x = 0; x < item.Raw.Length; x += maxPacketSize) 
                                 {
-                                    instance.port.Write(item.Raw, x, Math.Min(maxPacketSize, item.Raw.Length - x));
-                                    while(!instance.XON)
-                                        Thread.Sleep(0);
+                                    port.Write(item.Raw, x, Math.Min(maxPacketSize, item.Raw.Length - x));
+                                    Thread.Sleep(0);
                                 }
                             }
                             else 
-                                instance.Write(item.Raw);
+                                Write(item.Raw);
                         }
 #if DEBUG
                         else
@@ -61,12 +53,10 @@ namespace AyeBlinkin.Serial
                 }
                 catch (Exception)
                 {
-                    instance?.Dispose();
-                    instance= null;
+                    Dispose();
+                    Initialize();
                 }
             }
-
-            instance?.Dispose();
         }
     }
 }

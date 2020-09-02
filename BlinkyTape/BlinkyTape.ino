@@ -16,7 +16,7 @@ Pattern* patterns[MAX_PATTERN_COUNT];
 
 // Button interrupt counters
 volatile bool buttonUnhandled = false;
-volatile long buttonDownTime = 0;
+volatile unsigned long buttonDownTime = 0;
 volatile bool interruptSerialLoop = false;
 
 // Brightness controls
@@ -75,7 +75,8 @@ void setPattern(uint8_t newPattern) {
   if(EEPROM.read(PATTERN_EEPROM_ADDRESS) != currentPattern)
     EEPROM.write(PATTERN_EEPROM_ADDRESS, currentPattern);
 
-  patterns[currentPattern]->reset();  
+  patterns[currentPattern]->reset();
+  LEDS.clear();
 }
 
 // Change the current brightness

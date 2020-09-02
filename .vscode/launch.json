@@ -18,6 +18,22 @@
             "justMyCode": false
         },
         {
+            "name": "Release",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "release",
+            "program": "AyeBlinkin.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}//AyeBlinkin/bin/Release/netcoreapp3.1/",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "logging": {
+                "moduleLoad": false,
+                "engineLogging": false
+            },
+            "justMyCode": false
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",

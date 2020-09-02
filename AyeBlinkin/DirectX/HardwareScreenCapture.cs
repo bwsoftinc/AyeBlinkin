@@ -204,11 +204,15 @@ namespace AyeBlinkin.DirectX
                     var x = point.width / 2F;
                     var y = point.height / 2F;
 
+#if DEBUG
                     var selected = i == Settings.PreviewLED? 1F : 0F;
+#else
+                    var selected = 0;
+#endif
                     using(var color = new SolidColorBrush(renderOverlay, new Color4(r, g, b, 1F)))
                     using(var outline = new SolidColorBrush(renderOverlay, new Color4(selected, selected, selected, 1F))) {
-                        renderOverlay.FillEllipse(new Ellipse(new RawVector2(point.x + x, point.y + y), x/2, y/2), color);
                         renderOverlay.DrawEllipse(new Ellipse(new RawVector2(point.x + x, point.y + y), x/2, y/2), outline);
+                        renderOverlay.FillEllipse(new Ellipse(new RawVector2(point.x + x, point.y + y), x/2, y/2), color);
                     }
                 }
 
@@ -381,6 +385,7 @@ namespace AyeBlinkin.DirectX
             var destPtr = ptrMemBuffer;
             var width = renderBounds.Width * 4;
             var height = renderBounds.Height;
+            
 #if PARALLEL
             Parallel.For(0, height, x => Utilities.CopyMemory(
                 IntPtr.Add(destPtr, width * x),
@@ -444,8 +449,8 @@ namespace AyeBlinkin.DirectX
                         instance = new HardwareScreenCapture<T>();
                         instance.Initialize();
                         SerialCom.Enqueue(Message.StreamStart());
-                        //first call always seems to return an empty (black) screen
-                        //so consume it here during init
+                        //first call or two returns an empty (black) screen
+                        //consume here during init
                         instance.CaptureFrameGPU(); 
                     }
 

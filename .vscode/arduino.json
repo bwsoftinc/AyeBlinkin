@@ -1,6 +1,6 @@
 {
     "board": "blinkinlabs:avr:blinkytape256",
-    "port": "COM8",
+    "port": "COM6",
     "programmer": "AVRISP mkII",
     "sketch": "BlinkyTape/BlinkyTape.ino",
     "output": "BlinkyTape/build"

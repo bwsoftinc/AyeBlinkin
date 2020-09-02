@@ -18,29 +18,22 @@
             }
         },
         {
-            "label": "publish",
+            "label": "release",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "publish",
+                "build",
                 "${workspaceFolder}/AyeBlinkin/AyeBlinkin.csproj",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "/consoleloggerparameters:NoSummary",
+                "-c",
+                "release"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
-        {
-            "label": "watch",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "watch",
-                "run",
-                "${workspaceFolder}/AyeBlinkin/AyeBlinkin.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
-            ],
-            "problemMatcher": "$msCompile"
-        }
     ]
 }

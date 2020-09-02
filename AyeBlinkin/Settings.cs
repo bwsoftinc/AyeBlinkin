@@ -15,6 +15,7 @@ namespace AyeBlinkin
 {
     internal static class Settings  
     {
+        public volatile static String ComPort;
         public volatile static int PreviewLED;
         public volatile static int TotalLeds = 6;
         public volatile static int Scale = 1;
@@ -82,14 +83,14 @@ namespace AyeBlinkin
                 NotifyPropertyChanged();
             } }
 
-            [ConfigurationProperty("HorizontalLEDs", DefaultValue="2")]
+            [ConfigurationProperty("HorizontalLEDs", DefaultValue="25")]
             public int HorizontalLEDs { get => (int)this["HorizontalLEDs"]; set { 
                 this["HorizontalLEDs"] = value;
                 Settings.TotalLeds = value + (VerticalLEDs * 2);
                 NotifyPropertyChanged();
             } }
 
-            [ConfigurationProperty("VerticalLEDs", DefaultValue="2")]
+            [ConfigurationProperty("VerticalLEDs", DefaultValue="10")]
             public int VerticalLEDs { get => (int)this["VerticalLEDs"]; set {
                 this["VerticalLEDs"] = value;
                 Settings.TotalLeds = (value * 2) + HorizontalLEDs;
@@ -141,6 +142,7 @@ namespace AyeBlinkin
             [ConfigurationProperty("SerialComId", DefaultValue="")]
             public string SerialComId { get => (string)this["SerialComId"]; set {
                 this["SerialComId"] = value;
+                Settings.ComPort = value;
                 NotifyPropertyChanged();
                 AyeBlinkin.StartStopComThread();
             } }

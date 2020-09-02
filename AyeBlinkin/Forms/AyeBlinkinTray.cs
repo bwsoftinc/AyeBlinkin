@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.ComponentModel;
 
+using AyeBlinkin.Serial;
+using AyeBlinkin.DirectX;
 using AyeBlinkin.Resources;
 using AyeBlinkin.Forms.Controls;
 
@@ -15,21 +17,24 @@ namespace AyeBlinkin.Forms
         private NotifyIcon trayIcon;
         private ContextMenuStrip strip;
         private BindableToolStripMenuItem patterns;
-        private SettingsForm settingsForm = new SettingsForm();
+        private SettingsForm settingsForm;
 
         internal AyeBlinkinTray() 
         {
-            this.trayIcon = new NotifyIcon() {
+            Settings.Model.uiContext = SynchronizationContext.Current;
+
+            trayIcon = new NotifyIcon() {
                 ContextMenuStrip = MakeContextMenuStrip(),
                 Icon = Icons.Program,
                 Visible = true,
                 Text = AyeBlinkin.Name
             };
+            trayIcon.MouseUp += LeftClickOpenMenu;
 
+            settingsForm = new SettingsForm();
             Settings.Model.PropertyChanged += buildPatternOptions;
-            Settings.Model.uiContext = SynchronizationContext.Current;
-            this.trayIcon.MouseUp += LeftClickOpenMenu;
-            Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.HorizontalLEDs)); //get to send over serial
+            Settings.Model.SerialComs = SerialCom.GetUsbDevicePorts();
+            Settings.Model.Adapters = DeviceEnumerator.GetAdapters();
 #if DEBUG
             OpenSettingsForm(null, null);
 #endif
@@ -66,6 +71,7 @@ namespace AyeBlinkin.Forms
 
         private void buildPatternOptions(object sender, PropertyChangedEventArgs e)
         {
+            //new pattern selected update which item shows checked
             if(e.PropertyName == nameof(Settings.Model.PatternId))
             {
                 var value = Settings.Model.PatternId;
@@ -77,6 +83,7 @@ namespace AyeBlinkin.Forms
                         item.Checked = true;
                 }
             }
+            //new list of patterns, create the list control with events
             else if (e.PropertyName == nameof(Settings.Model.Patterns))
             {
                 var value = Settings.Model.Patterns;
@@ -130,17 +137,20 @@ namespace AyeBlinkin.Forms
             };
 
         private void Exit(object sender, EventArgs e)  => Application.Exit();
+        
         internal void hideIcon() => trayIcon.Visible = false;
 
-        private void LeftClickOpenMenu(object sender, MouseEventArgs e) {
+        private void LeftClickOpenMenu(object sender, MouseEventArgs e) 
+        {
             if(e.Button == MouseButtons.Left)
                 typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic)
                     .Invoke(this.trayIcon, null);
         }
 
-        private void OpenSettingsForm(object sender, EventArgs e) {
+        private void OpenSettingsForm(object sender, EventArgs e) 
+        {
             if(settingsForm.IsDisposed)
-                settingsForm = new SettingsForm(false);
+                settingsForm = new SettingsForm();
             if(!settingsForm.Visible)
                 settingsForm.Show();
         }

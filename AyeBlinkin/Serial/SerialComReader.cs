@@ -8,22 +8,21 @@ namespace AyeBlinkin.Serial
 {
     internal partial class SerialCom
     {
-        private bool readerStarted = false;
+        private const int readBufferSize = 1024;
+
         private void Reader(object obj) {
             Thread.CurrentThread.Name = $"RX Message Loop";
             var token = (CancellationToken)obj;
 
             var messageBuffer = new List<byte>();
-            var readBuffer = new byte[1024];
-            readerStarted = true;
+            var readBuffer = new byte[readBufferSize];
 
             while(!token.IsCancellationRequested) 
             {
                 try {
-                    Task.Run(() => {
-                        try { messageBuffer.AddRange(readBuffer.Take(port.Read(readBuffer, 0, 1024))); }
-                        catch (Exception) { }
-                    }).Wait(token);
+                    Task.Run(() => { try { 
+                        messageBuffer.AddRange(readBuffer.Take(port.Read(readBuffer, 0, readBufferSize))); 
+                    } catch (Exception) { } }).Wait(token);
                 }
                 catch(OperationCanceledException) {
                     port.ReadTimeout = 1;
@@ -62,10 +61,6 @@ namespace AyeBlinkin.Serial
         private void ProcessMessage(IEnumerable<byte> message) 
         {
             switch(message.ElementAt(0)) {
-                case(byte)Command.Continue:
-                    XON = true;
-                    break;
-
                 case (byte)Command.Patterns:
                     var msg = new String(message.Skip(1).Select(Convert.ToChar).ToArray());
                     Settings.Model.Patterns = msg.Substring(0, msg.Length-1)

@@ -4,10 +4,6 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.ComponentModel;
 
-using AyeBlinkin.Serial;
-using AyeBlinkin.DirectX;
-using AyeBlinkin.Centroid;
-
 namespace AyeBlinkin.Forms
 {
     internal partial class SettingsForm : Form
@@ -21,18 +17,12 @@ namespace AyeBlinkin.Forms
         private NumericUpDown horizontal;
         private Panel controlPanel;
 
-        internal SettingsForm(bool init = true) 
+        internal SettingsForm()
         { 
             ShowInTaskbar = false;
             TopMost = true;
             InitializeComponent();
             Settings.Model.PropertyChanged += ResizeControls;
-            Settings.Model.Adapters = DeviceEnumerator.GetAdapters();
-            if(init) 
-            {
-                Settings.Model.SerialComs = SerialCom.GetUsbDevicePorts();
-                Settings.Model.NotifyPropertyChanged(nameof(Settings.Model.Mirror));
-            }
         }
 
         protected override void OnShown(EventArgs e) 

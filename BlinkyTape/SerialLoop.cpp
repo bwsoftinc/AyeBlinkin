@@ -17,15 +17,10 @@ void serialLoop(CRGB* leds) {
 
     if(command0 != INTERRUPT) { //streaming one rgb packet for each led
       leds[ledIndex++].setRGB(command0, command1, command2);
-      if(ledIndex != LED_COUNT) {
-        if(ledIndex % 48 == 0)
-          Serial.write(CMD_CONTINUE);
+      if(ledIndex != LED_COUNT)
         continue;
-      }
-      else {
+      else
         ledIndex = 0;
-        Serial.write(CMD_CONTINUE);
-      }
 
     } else if(command1 < BRIGHTNESS) { //command1 < 0x03 is r, g, b
       for(ledIndex = 0; ledIndex < LED_COUNT; ledIndex++)
@@ -57,12 +52,8 @@ void serialLoop(CRGB* leds) {
         return;
       }
 
-    } else {
-      while(Serial.available() > 0)
-        Serial.read();
-
+    } else
       return;
-    }
 
     LEDS.show();
   }

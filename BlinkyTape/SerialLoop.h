@@ -5,7 +5,6 @@
 #define CMD_PATTERNS   0xFE // tx command to indicate pattern data
 #define CMD_BRIGHTNESS 0xFD // tx command to indicate brightness data
 #define CMD_PATTERN    0xFC // rx, tx command to indicate selcted pattern
-#define CMD_CONTINUE   0xFB // tx command to continue transmission
 
 //command index 1 (index 0 is interrupt)
 #define RED             0x00 // rx command to set red level

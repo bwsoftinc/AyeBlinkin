@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Linq;
 using System.IO.Ports;
 using System.Threading;
@@ -10,33 +11,39 @@ namespace AyeBlinkin.Serial
 {
     internal partial class SerialCom : IDisposable
     {
+        private const int baud = 115200;
         private SerialPort port;
-        private volatile bool XON = true;
-        private CancellationTokenSource readCancel = new CancellationTokenSource();
+        private CancellationTokenSource writeCancel;
+        private CancellationTokenSource readCancel;
 
         public void Dispose() {
             if(port?.IsOpen??false)
                 Write(Message.ExitSerialCom().Raw);
 
-            readCancel.Cancel();
+            writeCancel?.Cancel();
+            readCancel?.Cancel();
+            writeCancel?.Dispose();
+            readCancel?.Dispose();
             port?.Dispose();
         }
 
-        private SerialCom() { 
-            port = new SerialPort(Settings.Model.SerialComId, 115200, Parity.None, 8, StopBits.One);
-            port.Open();
+        ~SerialCom() => Dispose();
+
+        public SerialCom() => Initialize();
+
+        private void Initialize() {
+            port = new SerialPort(Settings.ComPort, baud, Parity.None, 8, StopBits.One);
             port.ReadTimeout = -1;
             port.WriteTimeout = -1;
             port.DtrEnable = true;
+            port.Encoding = Encoding.GetEncoding(28591); //ISO 8859-1 8bit
+            port.Open();
 
             Settings.Model.PropertyChanged += SendPattern;
-        }
-        private void Initialize() {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(this.Reader), readCancel.Token);
-            while(!readerStarted)
-                Thread.Sleep(10);
-
-            Write(Message.GetPatterns().Raw);
+            writeCancel = new CancellationTokenSource();
+            readCancel = new CancellationTokenSource();
+            ThreadPool.QueueUserWorkItem(new WaitCallback(Reader), readCancel.Token);
+            ThreadPool.QueueUserWorkItem(new WaitCallback(Writer), writeCancel.Token);
         }
 
         private void SendPattern(object sender, PropertyChangedEventArgs e)
