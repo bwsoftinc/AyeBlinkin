@@ -7,5 +7,5 @@ class Flashlight : public Pattern {
   public:
     Flashlight(CRGB newColor);
     void reset() {};
-    void draw(CRGB * leds);
+    void draw(CRGB* leds);
 };

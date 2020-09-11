@@ -10,13 +10,13 @@ const uint8_t stepSize = 5;
 
 void ShimmerDot::reset() {
     value = 0;
-    maxValue = random(MAX_LEDS);
-    resetDelay = random(MAX_LEDS / 4);
-    direction = 1;
+    maxValue = random8(MAX_LEDS);
+    resetDelay = random8(MAX_LEDS / 4);
+    directionForward = true;
 }
 
 void ShimmerDot::update() {
-  if (direction == 1) {
+  if (directionForward) {
     if (value/valueDivisor < maxValue) {
       int accelerated_step = 0;
       float unit = 0;
@@ -30,7 +30,7 @@ void ShimmerDot::update() {
         value -= MAX_LEDS * valueDivisor;
     }
     else
-      direction = 0;
+      directionForward = false;
   }
   else {
     if (value/valueDivisor > 0) {
@@ -50,11 +50,11 @@ void ShimmerDot::update() {
 }
 
 uint8_t ShimmerDot::getValue() {
-  return ((value/valueDivisor) &0xFF);
+  return ((value/valueDivisor) & 0xFF);
 }
 
 void Shimmer::reset() { 
-  for (uint16_t i = 0; i < LED_COUNT; i++)
+  for (uint8_t i = 0; i < LED_COUNT; i++)
     shimmerDots[i].reset();
 }
 
@@ -65,7 +65,7 @@ Shimmer::Shimmer(float r, float g, float b) :
 }
 
 void Shimmer::draw(CRGB* leds) { 
-  for (uint16_t i = 0; i < LED_COUNT; i++) {
+  for (uint8_t i = 0; i < LED_COUNT; i++) {
     shimmerDots[i].update();
 
     leds[i].r = (uint8_t)(shimmerDots[i].getValue() * color_temp_factor_r);
@@ -73,5 +73,5 @@ void Shimmer::draw(CRGB* leds) {
     leds[i].b = (uint8_t)(shimmerDots[i].getValue() * color_temp_factor_b);
   }
     
-  delay(30);  // TODO: Don't place me here
-} // end shimmer_update_loop
+  delay(30);
+}

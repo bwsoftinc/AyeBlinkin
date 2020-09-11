@@ -1,5 +1,4 @@
-software screen capture (gdi)
 tray context menu tab stops
 hotplug usb
 serial error handling -> reinit serial
-migrate thread invokation in screen capture to instance
+volume bar meter

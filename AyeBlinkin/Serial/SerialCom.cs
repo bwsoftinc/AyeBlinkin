@@ -15,6 +15,7 @@ namespace AyeBlinkin.Serial
         private SerialPort port;
         private CancellationTokenSource writeCancel;
         private CancellationTokenSource readCancel;
+        private static ManagementEventWatcher eventWatcher;
 
         public void Dispose() {
             if(port?.IsOpen??false)
@@ -83,15 +84,28 @@ namespace AyeBlinkin.Serial
             }
         }
 
+        private const string deviceMask = "Name like '%(COM%)'";
+
+        static SerialCom()
+        {
+            eventWatcher = new ManagementEventWatcher(new WqlEventQuery() {
+                EventClassName = "__InstanceOperationEvent",
+                WithinInterval = new TimeSpan(0, 0, 1),
+                Condition = $"TargetInstance ISA 'Win32_PnPEntity' and TargetInstance.{deviceMask}"
+            });
+
+            eventWatcher.EventArrived += (sender, e) => Settings.Model.SerialComs = GetUsbDevicePorts();
+            eventWatcher.Start();
+        }
+
         internal static Dictionary<string, string> GetUsbDevicePorts() 
         {
             var usbs = new List<string>();
-            using(var searcher = new ManagementObjectSearcher(@"select Name From Win32_PnPEntity where Name like '%(COM%)'")) 
+            using(var searcher = new ManagementObjectSearcher($"select Name From Win32_PnPEntity where {deviceMask}")) 
             using(var collection = searcher.Get())
-                foreach(var obj in collection) {
-                    usbs.Add((string)obj.GetPropertyValue("Name"));
-                    obj.Dispose();
-                }
+                foreach(var obj in collection)
+                    using(obj)
+                        usbs.Add((string)obj.GetPropertyValue("Name"));
 
             var coms = new HashSet<string>(SerialPort.GetPortNames().Select(x => x.ToUpper()));
             return usbs.Select(x => {

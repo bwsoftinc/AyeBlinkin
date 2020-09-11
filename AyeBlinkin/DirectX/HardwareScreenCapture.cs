@@ -78,9 +78,13 @@ namespace AyeBlinkin.DirectX
             renderTarget?.Dispose();
             renderTexture?.Dispose();
             renderWindow?.Dispose();
-            device?.ImmediateContext?.ClearState();
-            device?.ImmediateContext?.Flush();
-            device?.ImmediateContext?.Dispose();
+            
+            try {
+                device?.ImmediateContext?.ClearState();
+                device?.ImmediateContext?.Flush();
+                device?.ImmediateContext?.Dispose();
+            } catch { }
+
             adapter?.Dispose();
             output?.Dispose();
             device?.Dispose();
@@ -90,6 +94,8 @@ namespace AyeBlinkin.DirectX
             gpuTexture?.Dispose();
             cpuTexture?.Dispose();
         }
+
+        ~HardwareScreenCapture() => Dispose();
 
         private HardwareScreenCapture() { }
 
@@ -204,11 +210,12 @@ namespace AyeBlinkin.DirectX
                     var x = point.width / 2F;
                     var y = point.height / 2F;
 
+                    var selected = 
 #if DEBUG
-                    var selected = i == Settings.PreviewLED? 1F : 0F;
-#else
-                    var selected = 0;
+                    i == Settings.PreviewLED? 1F : 
 #endif
+                    0F;
+
                     using(var color = new SolidColorBrush(renderOverlay, new Color4(r, g, b, 1F)))
                     using(var outline = new SolidColorBrush(renderOverlay, new Color4(selected, selected, selected, 1F))) {
                         renderOverlay.DrawEllipse(new Ellipse(new RawVector2(point.x + x, point.y + y), x/2, y/2), outline);
@@ -217,8 +224,7 @@ namespace AyeBlinkin.DirectX
                 }
 
                 //TODO: draw volume bar meter
-                renderOverlay.EndDraw();
-                
+                renderOverlay.EndDraw();                
                 renderWindow.Present(0, PresentFlags.None, presentParameters);
             }
         }
@@ -385,7 +391,6 @@ namespace AyeBlinkin.DirectX
             var destPtr = ptrMemBuffer;
             var width = renderBounds.Width * 4;
             var height = renderBounds.Height;
-            
 #if PARALLEL
             Parallel.For(0, height, x => Utilities.CopyMemory(
                 IntPtr.Add(destPtr, width * x),
@@ -399,36 +404,7 @@ namespace AyeBlinkin.DirectX
                 sourcePtr = IntPtr.Add(sourcePtr, pitch);
             }
 #endif
-
             device.ImmediateContext.UnmapSubresource(cpuTexture, 0);
-        }
-
-        private class AvgFPSCounter : IDisposable
-        {
-            private const int framesToAverage = 30;
-            private const float msScale = 1000F * framesToAverage;
-            private float msTotal = 0F;
-            private int dataPointer = 0;
-            private float[] data = new float[framesToAverage];
-            private Stopwatch timer = new Stopwatch();
-            public AvgFPSCounter() => timer.Start();
-
-            public void Dispose() {
-                timer?.Stop();
-                timer = null;
-            }
-
-            public double NextFPS() 
-            {
-                var ms = (float)timer.Elapsed.TotalMilliseconds;
-                timer.Restart();
-
-                msTotal += ms - data[dataPointer];
-                data[dataPointer] = ms;
-
-                dataPointer = ++dataPointer % framesToAverage;
-                return msScale / msTotal;
-            }
         }
 
 #region Thread Loop
@@ -469,7 +445,7 @@ namespace AyeBlinkin.DirectX
 #endif
                         points = new byte[instance.ledPoints.Length * 3];
 
-                        for(i = 0, ix = 0; i < instance.ledPoints.Length; ++i, ix = i * 3) 
+                        for(i = 0, ix = 0; i < instance.ledPoints.Length; ++i, ix = i * 3)
                         {
                             color = instance.ledPoints[i].mean;
                             points[ix]   = color[0];
@@ -487,7 +463,7 @@ namespace AyeBlinkin.DirectX
 #if DOT_TIMER
                         Console.WriteLine(sw.Elapsed.TotalMilliseconds);
 #endif
-                        instance.Render(points);                        
+                        instance.Render(points);
                     }
                 }
                 catch (Exception)
@@ -496,10 +472,8 @@ namespace AyeBlinkin.DirectX
                     instance = null;
                 }
             }
-
             instance?.Dispose();
         }
 #endregion
-
     }
 }

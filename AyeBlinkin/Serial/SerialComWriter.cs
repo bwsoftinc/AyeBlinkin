@@ -33,11 +33,10 @@ namespace AyeBlinkin.Serial
                         {
                             if(item.Type == Message.Type.Stream) 
                             {
-                                //under 1ms to tx and get confirmation of entire frame
                                 for(var x = 0; x < item.Raw.Length; x += maxPacketSize) 
                                 {
                                     port.Write(item.Raw, x, Math.Min(maxPacketSize, item.Raw.Length - x));
-                                    Thread.Sleep(0);
+                                    Thread.Sleep(0); //enough of a pause to let serial buffer not overflow
                                 }
                             }
                             else 

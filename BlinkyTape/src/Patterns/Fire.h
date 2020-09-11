@@ -11,5 +11,5 @@ class Fire : public Pattern {
   public:
     Fire(uint8_t sparking, uint8_t cooling);
     void reset();
-    void draw(CRGB * leds);
+    void draw(CRGB* leds);
 };

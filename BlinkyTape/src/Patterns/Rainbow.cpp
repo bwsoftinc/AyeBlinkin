@@ -19,5 +19,5 @@ void Rainbow::draw(CRGB* leds) {
     leds[i] = color;
 
   index++;
-  delay(20);
+  delay(24);
 }

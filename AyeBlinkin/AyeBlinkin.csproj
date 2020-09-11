@@ -9,13 +9,14 @@
     <ApplicationIcon>Resources/Program.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DefineConstants>PARALLEL,DEBUG</DefineConstants>
+    <DefineConstants>PARALLEL,DEBUG,DOT_TIMER</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DefineConstants></DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Program.ico"/>
     <EmbeddedResource Include="Resources\Settings.ico"/>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="NAudio" Version="1.10.0"/>
     <PackageReference Include="SharpDX" Version="4.2.0"/>
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0"/>

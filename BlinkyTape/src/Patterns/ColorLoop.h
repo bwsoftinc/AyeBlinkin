@@ -14,5 +14,5 @@ class ColorLoop : public Pattern {
   public:
     ColorLoop(float newRBal, float newGBal, float newBBal);
     void reset();
-    void draw(CRGB * leds);
+    void draw(CRGB* leds);
 };

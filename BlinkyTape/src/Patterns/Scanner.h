@@ -11,5 +11,5 @@ class Scanner : public Pattern {
   public:
     Scanner(uint16_t newScanWidth, CRGB newColor);
     void reset();
-    void draw(CRGB * leds);
+    void draw(CRGB* leds);
 };

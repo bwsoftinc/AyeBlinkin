@@ -7,6 +7,8 @@
 #include "src/Patterns/Fire.h"
 #include "src/Patterns/Pacifica.h"
 #include "src/Patterns/Rainbow.h"
+#include "src/Patterns/Lightning.h"
+#include "src/Patterns/Plasma.h"
 
 // LED data array
 volatile uint8_t LED_COUNT = 45;
@@ -37,6 +39,8 @@ Shimmer shimmer(1,1,1);
 Fire fire(100, 55);
 Pacifica pacifica;
 Rainbow rainbowShift(0 ,85, 170);
+Lightning lightning(40, 9);
+Plasma plasma;
 
 const char blueRainbowName[]      PROGMEM = "Blue Rainbow Run";
 const char flashlightName[]       PROGMEM = "Flashlight";
@@ -46,7 +50,9 @@ const char originalRainbowName[]  PROGMEM = "Rainbow Run";
 const char shimmerName[]          PROGMEM = "Shimmer";
 const char fireName[]             PROGMEM = "Fire";
 const char pacificaName[]         PROGMEM = "Pacifica";
-const char rainbowShiftName[]       PROGMEM = "Rainbow Shift";
+const char rainbowShiftName[]     PROGMEM = "Rainbow Shift";
+const char lightningName[]        PROGMEM = "Lightning";
+const char plasmaName[]           PROGMEM = "Plasma";
 const char* const patternNames[]  PROGMEM = { //keep this order the same as patterns are loaded
   blueRainbowName,
   flashlightName,
@@ -56,7 +62,9 @@ const char* const patternNames[]  PROGMEM = { //keep this order the same as patt
   shimmerName,
   fireName,
   pacificaName,
-  rainbowShiftName
+  rainbowShiftName,
+  lightningName,
+  plasmaName
 };
 
 // Register a pattern
@@ -159,13 +167,15 @@ void setup(){
   loadPattern(&fire);
   loadPattern(&pacifica);
   loadPattern(&rainbowShift);
+  loadPattern(&lightning);
+  loadPattern(&plasma);
   
   // Read in the last-used pattern and brightness
   setPattern(EEPROM.read(PATTERN_EEPROM_ADDRESS));
   setBrightness(EEPROM.read(BRIGHTNESS_EEPROM_ADDRESS));
+
   controller = &LEDS.addLeds<WS2812B, LED_OUT, GRB>(leds, LED_COUNT);
-  LEDS.setCorrection(TypicalLEDStrip);
-  //LEDS.setTemperature(Halogen);
+  LEDS.setCorrection(0xFFE4BA);
   LEDS.show();
 }
 

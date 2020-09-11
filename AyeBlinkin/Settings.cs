@@ -15,11 +15,11 @@ namespace AyeBlinkin
 {
     internal static class Settings  
     {
-        public volatile static String ComPort;
-        public volatile static int PreviewLED;
-        public volatile static int TotalLeds = 6;
         public volatile static int Scale = 1;
+        public volatile static int PreviewLED;
+        public volatile static int TotalLeds = 45;
         public volatile static IntPtr SettingsHwnd = IntPtr.Zero;
+        public volatile static String ComPort;
 
         internal class BindingModel : ConfigurationSection, INotifyPropertyChanged 
         {
