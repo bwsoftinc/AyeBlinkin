@@ -38,7 +38,7 @@ namespace AyeBlinkin.Forms
                 Width = 20
             });
 
-            previous.Click += (sender, pre) => Settings.PreviewLED--;
+            previous.Click += (sender, pre) => Settings.Model.PreviewLED--;
 
             this.Controls.Add(image = new TestPictureBox() {
                 Dock = DockStyle.Fill,
@@ -54,7 +54,7 @@ namespace AyeBlinkin.Forms
                 Width = 20
             });
 
-            next.Click += (sender, nex) => Settings.PreviewLED++;
+            next.Click += (sender, nex) => Settings.Model.PreviewLED++;
 
             this.Controls.Add(colors = new TestPanel() {
                 Dock = DockStyle.Bottom,

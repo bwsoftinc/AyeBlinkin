@@ -13,7 +13,8 @@ namespace AyeBlinkin.DirectX
         private Stopwatch timer = new Stopwatch();
         public AvgFPSCounter() => timer.Start();
 
-        public void Dispose() {
+        public void Dispose() 
+        {
             timer?.Stop();
             timer = null;
         }

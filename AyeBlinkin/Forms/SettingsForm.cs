@@ -3,6 +3,7 @@ using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace AyeBlinkin.Forms
 {
@@ -33,7 +34,8 @@ namespace AyeBlinkin.Forms
 #endif
         }
         
-        protected override void OnClosing(CancelEventArgs e) { 
+        protected override void OnClosing(CancelEventArgs e) 
+        { 
             Settings.SettingsHwnd = IntPtr.Zero;
 #if DEBUG
             CentroidColorForm.HideSlice();
@@ -42,17 +44,29 @@ namespace AyeBlinkin.Forms
 
         private void ResizeControls(object sender, PropertyChangedEventArgs e) 
         {
-            if(e.PropertyName == nameof(Settings.Model.Adapters) 
-                || e.PropertyName == nameof(Settings.Model.Displays) 
-                || e.PropertyName == nameof(Settings.Model.SerialComs))
-            {
-                var width = 0;
-                using(var g = Graphics.FromHwnd(IntPtr.Zero))
-                    width = new[] { Settings.Model.Adapters.Values, Settings.Model.Displays.Values, Settings.Model.SerialComs.Values }
-                        .SelectMany(x => x).Max(x => (int)g.MeasureString(x, adapter.Font).Width);
-
-                adapter.Width = serial.Width = display.Width = width + 24;
+            switch(e.PropertyName) {
+                case nameof(Settings.Model.SerialComs):
+                    (this.serial.DataSource as BindingSource)?.ResetBindings(false);
+                    break;
+                case nameof(Settings.Model.Displays):
+                    (this.display.DataSource as BindingSource)?.ResetBindings(false);
+                    break;
+                case nameof(Settings.Model.Adapters):
+                    (this.adapter.DataSource as BindingSource)?.ResetBindings(false);
+                    break;
+                default:
+                    return;
             }
+
+            var width = 0;
+            using(var g = Graphics.FromHwnd(IntPtr.Zero))
+                width = new[] { 
+                    Settings.Model.Adapters.Select(x => x.Value),
+                    Settings.Model.Displays.Select(x => x.Value), 
+                    Settings.Model.SerialComs.Select(x => x.Value)
+                }.SelectMany(x => x).Max(x => (int)g.MeasureString(x, adapter.Font).Width);
+
+            adapter.Width = serial.Width = display.Width = width + 24;
         }
     }
 }

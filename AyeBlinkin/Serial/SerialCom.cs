@@ -1,11 +1,8 @@
 using System;
 using System.Text;
-using System.Linq;
 using System.IO.Ports;
 using System.Threading;
-using System.Management;
 using System.ComponentModel;
-using System.Collections.Generic;
 
 namespace AyeBlinkin.Serial 
 {
@@ -15,14 +12,19 @@ namespace AyeBlinkin.Serial
         private SerialPort port;
         private CancellationTokenSource writeCancel;
         private CancellationTokenSource readCancel;
-        private static ManagementEventWatcher eventWatcher;
+
+        private static bool initialized = false;
 
         public void Dispose() {
             if(port?.IsOpen??false)
                 Write(Message.ExitSerialCom().Raw);
 
-            writeCancel?.Cancel();
-            readCancel?.Cancel();
+            initialized = false;
+            try { writeCancel?.Cancel(); }
+            catch(ObjectDisposedException) { }
+            try { readCancel?.Cancel(); }
+            catch(ObjectDisposedException) {}
+
             writeCancel?.Dispose();
             readCancel?.Dispose();
             port?.Dispose();
@@ -33,7 +35,7 @@ namespace AyeBlinkin.Serial
         public SerialCom() => Initialize();
 
         private void Initialize() {
-            port = new SerialPort(Settings.ComPort, baud, Parity.None, 8, StopBits.One);
+            port = new SerialPort(Settings.Model.SerialComId, baud, Parity.None, 8, StopBits.One);
             port.ReadTimeout = -1;
             port.WriteTimeout = -1;
             port.DtrEnable = true;
@@ -43,6 +45,7 @@ namespace AyeBlinkin.Serial
             Settings.Model.PropertyChanged += SendPattern;
             writeCancel = new CancellationTokenSource();
             readCancel = new CancellationTokenSource();
+            initialized = true;
             ThreadPool.QueueUserWorkItem(new WaitCallback(Reader), readCancel.Token);
             ThreadPool.QueueUserWorkItem(new WaitCallback(Writer), writeCancel.Token);
         }
@@ -64,7 +67,7 @@ namespace AyeBlinkin.Serial
                     break;
                 case nameof(Settings.Model.HorizontalLEDs):
                 case nameof(Settings.Model.VerticalLEDs):
-                    Enqueue(Message.SetLedNumber(Settings.TotalLeds));
+                    Enqueue(Message.SetLedNumber(Settings.Model.TotalLeds));
                     break;
                 case nameof(Settings.Model.Brightness):
                     Enqueue(Message.SetBright(Settings.Model.Brightness));
@@ -84,37 +87,5 @@ namespace AyeBlinkin.Serial
             }
         }
 
-        private const string deviceMask = "Name like '%(COM%)'";
-
-        static SerialCom()
-        {
-            eventWatcher = new ManagementEventWatcher(new WqlEventQuery() {
-                EventClassName = "__InstanceOperationEvent",
-                WithinInterval = new TimeSpan(0, 0, 1),
-                Condition = $"TargetInstance ISA 'Win32_PnPEntity' and TargetInstance.{deviceMask}"
-            });
-
-            eventWatcher.EventArrived += (sender, e) => Settings.Model.SerialComs = GetUsbDevicePorts();
-            eventWatcher.Start();
-        }
-
-        internal static Dictionary<string, string> GetUsbDevicePorts() 
-        {
-            var usbs = new List<string>();
-            using(var searcher = new ManagementObjectSearcher($"select Name From Win32_PnPEntity where {deviceMask}")) 
-            using(var collection = searcher.Get())
-                foreach(var obj in collection)
-                    using(obj)
-                        usbs.Add((string)obj.GetPropertyValue("Name"));
-
-            var coms = new HashSet<string>(SerialPort.GetPortNames().Select(x => x.ToUpper()));
-            return usbs.Select(x => {
-                var ix = x.LastIndexOf("(") + 1;
-                return new {
-                    com = x.Substring(ix, x.Length - ix - 1).ToUpper(),
-                    name = x
-                };
-            }).Where(x => coms.Contains(x.com)).ToDictionary(x => x.com, x => x.name);
-        }
     }
 }

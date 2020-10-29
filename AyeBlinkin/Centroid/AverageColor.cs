@@ -1,16 +1,15 @@
-using System;
-
 namespace AyeBlinkin.Centroid 
 {
     internal class AverageColor : CentroidBase
     {
         private byte[] centroidMean;
+        private CentroidColor gray, color;
 
         public AverageColor() 
         {
             Clusters = new CentroidColor[2] {
-                new CentroidColor(),
-                new CentroidColor()
+                gray = new CentroidColor(),
+                color = new CentroidColor()
             };
         }
 
@@ -42,28 +41,28 @@ namespace AyeBlinkin.Centroid
             }
 
             if(count != 0) {
-                Clusters[1].mean[0]= (byte)(r2 / count);
-                Clusters[1].mean[1] = (byte)(g2 / count);
-                Clusters[1].mean[2] = (byte)(b2 / count);
-                Clusters[1].memberCount = count;
+                color.mean[0] = (byte)(r2 / count);
+                color.mean[1] = (byte)(g2 / count);
+                color.mean[2] = (byte)(b2 / count);
+                color.memberCount = count;
             } else {
-                Clusters[1].mean[0] = 0;
-                Clusters[1].mean[1] = 0;
-                Clusters[1].mean[2] = 0;
-                Clusters[1].memberCount = 0;
+                color.mean[0] = 0;
+                color.mean[1] = 0;
+                color.mean[2] = 0;
+                color.memberCount = 0;
             }
 
             count = end - count;
             if(count != 0) {
-                Clusters[0].mean[0] = (byte)(r1 / count);
-                Clusters[0].mean[1] = (byte)(g1 / count);;
-                Clusters[0].mean[2] = (byte)(b1 / count);;
-                Clusters[0].memberCount = count;
+                gray.mean[0] = (byte)(r1 / count);
+                gray.mean[1] = (byte)(g1 / count);;
+                gray.mean[2] = (byte)(b1 / count);;
+                gray.memberCount = count;
             } else {
-                Clusters[0].mean[0] = 0;
-                Clusters[0].mean[1] = 0;
-                Clusters[0].mean[2] = 0;
-                Clusters[0].memberCount = 0;
+                gray.mean[0] = 0;
+                gray.mean[1] = 0;
+                gray.mean[2] = 0;
+                gray.memberCount = 0;
             }
 
             centroidMean = Clusters[count == end? 0 : 1].mean;

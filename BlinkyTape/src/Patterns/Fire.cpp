@@ -13,21 +13,21 @@ void Fire::reset() {
 void Fire::draw(CRGB* leds) {  
   uint8_t i;
 
-  // Step 1.  Cool down every cell a little
+  // cool
   for(i = 0; i < HEIGHT; i++)
     heat[i] = qsub8(heat[i],  random8(0, ((COOLING * 10) / HEIGHT) + 2));
     
   for(i = LED_COUNT - 1; i >= LED_COUNT - HEIGHT; i--)
     heat[i] = qsub8(heat[i],  random8(0, ((COOLING * 10) / HEIGHT) + 2));
 
-  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+  // heat rises
   for(i = HEIGHT - 1; i >= 2; i--)
     heat[i] = (heat[i - 1] + heat[i - 2] + heat[i - 2] ) / 3;
 
   for(i = LED_COUNT - HEIGHT-1; i <= LED_COUNT - 2; i++)
     heat[i] = (heat[i + 1] + heat[i + 2] + heat[i + 2] ) / 3;
   
-  // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+  // new heat
   if(random8() < SPARKING ) {
     i = random8(2);
     heat[i] = qadd8(heat[i], random8(160,255));
@@ -38,7 +38,7 @@ void Fire::draw(CRGB* leds) {
     heat[LED_COUNT-1-i] = qadd8(heat[LED_COUNT-1-i], random8(160,255));
   }
 
-  // Step 4.  Map from heat cells to LED colors
+  // draw
   for(i = 0; i < HEIGHT; i++)
     leds[i] = HeatColor(heat[i]);
 

@@ -11,9 +11,9 @@ void Rainbow::reset() {
 }
 
 void Rainbow::draw(CRGB* leds) {  
-  color.r = sin8(index);
-  color.g = sin8(index + 85);
-  color.b = sin8(index + 170);
+  color.r = sin8(index + phase1);
+  color.g = sin8(index + phase2);
+  color.b = sin8(index + phase3);
 
   for(uint8_t i = 0; i < LED_COUNT; i++)
     leds[i] = color;

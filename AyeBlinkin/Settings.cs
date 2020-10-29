@@ -9,17 +9,12 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using AyeBlinkin.DirectX;
-using AyeBlinkin.CoreAudio;
 
 namespace AyeBlinkin 
 {
-    internal static class Settings  
+    internal static class Settings
     {
-        public volatile static int Scale = 1;
-        public volatile static int PreviewLED;
-        public volatile static int TotalLeds = 45;
         public volatile static IntPtr SettingsHwnd = IntPtr.Zero;
-        public volatile static String ComPort;
 
         internal class BindingModel : ConfigurationSection, INotifyPropertyChanged 
         {
@@ -86,14 +81,14 @@ namespace AyeBlinkin
             [ConfigurationProperty("HorizontalLEDs", DefaultValue="25")]
             public int HorizontalLEDs { get => (int)this["HorizontalLEDs"]; set { 
                 this["HorizontalLEDs"] = value;
-                Settings.TotalLeds = value + (VerticalLEDs * 2);
+                TotalLeds = value + (VerticalLEDs * 2);
                 NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("VerticalLEDs", DefaultValue="10")]
             public int VerticalLEDs { get => (int)this["VerticalLEDs"]; set {
                 this["VerticalLEDs"] = value;
-                Settings.TotalLeds = (value * 2) + HorizontalLEDs;
+                TotalLeds = (value * 2) + HorizontalLEDs;
                 NotifyPropertyChanged();
             } }
 
@@ -104,12 +99,16 @@ namespace AyeBlinkin
                     this["AdapterId"] = value;
                     NotifyPropertyChanged();
 
-                    Displays = DeviceEnumerator.GetDisplays(val).ToDictionary(
-                        x => x.Substring(0, x.Length - x.LastIndexOf("(") - 1), x => x);
+                    var list = new BindingList<KeyValuePair<string, string>>();
+                    foreach(var x in DeviceEnumerator.GetDisplays(val))
+                        list.Add(new KeyValuePair<string, string>(
+                            x.Substring(0, x.Length - x.LastIndexOf("(") - 1),x));
+
+                    Displays = list;
                 }
                 else {
                     this["AdapterId"] = String.Empty;
-                    Displays = new Dictionary<string, string>() { [String.Empty] = String.Empty };
+                    Displays = new BindingList<KeyValuePair<string, string>>();
                 }
             } }
 
@@ -120,7 +119,7 @@ namespace AyeBlinkin
                     this["DisplayId"] = value;
                     NotifyPropertyChanged();
 
-                    var val = Displays[DisplayId];
+                    var val = Displays.FirstOrDefault(d => d.Key == DisplayId).Value;
                     var i = val.LastIndexOf("(") + 1;
                     if(i==0) return;
 
@@ -133,7 +132,7 @@ namespace AyeBlinkin
                             scale *= 2;
                         }
 
-                        Settings.Scale = scale;
+                        Settings.Model.Scale = scale;
                         SettingsWindowSize = new Size(x, y);
                     }
                 }
@@ -142,24 +141,24 @@ namespace AyeBlinkin
             [ConfigurationProperty("SerialComId", DefaultValue="")]
             public string SerialComId { get => (string)this["SerialComId"]; set {
                 this["SerialComId"] = value;
-                Settings.ComPort = value;
                 NotifyPropertyChanged();
+                
+                if(string.IsNullOrWhiteSpace(value))
+                    Mirror = false;
+
                 AyeBlinkin.StartStopComThread();
             } }
 
             [ConfigurationProperty("Audio", DefaultValue="false")]
             public bool Audio { get => (bool)this["Audio"]; set {
                 this["Audio"] = value;
-
-                if(value)
-                    WasapiSoundCapture.Start();
-                else
-                    WasapiSoundCapture.Stop();
-
                 NotifyPropertyChanged();
             } }
 
             //internal bindings (not saved to config)
+            public int Scale { get; set; } = 1;            
+            public int PreviewLED { get; set; }
+            public int TotalLeds { get; set; } = 45;
             private const int MinSettingsWindowHeight = 240; //150
             private const int MinSettingsWindowWidth = 320; //300
             public bool BrightBarEnabled {get => !Audio; set { } }
@@ -195,44 +194,46 @@ namespace AyeBlinkin
                 }
             } }
 
-            private Dictionary<string, string> adapters = new Dictionary<string, string>() { [String.Empty] = String.Empty };
-            public Dictionary<string, string> Adapters { get => adapters; set {
-                if(value.Count > 0) {
-                    adapters = value;
-                    NotifyPropertyChanged();
-                    AdapterId = adapters.ContainsKey(AdapterId)? AdapterId : Adapters.First().Key;
-                }
-                else {
-                    adapters = new Dictionary<string, string>() { [String.Empty] = String.Empty };
-                    AdapterId = String.Empty;
-                }
+            private BindingList<KeyValuePair<string, string>> adapters = new BindingList<KeyValuePair<string, string>>();
+            public BindingList<KeyValuePair<string, string>> Adapters { get => adapters; set {
+                adapters.Clear();
+
+                foreach(var kvp in value)
+                    adapters.Add(kvp);
+
+                NotifyPropertyChanged();
+
+                AdapterId = adapters.Any(kvp => kvp.Key == AdapterId)? AdapterId 
+                    : adapters.FirstOrDefault().Key ?? string.Empty;
+                
             } }
 
-            private Dictionary<string, string> displays = new Dictionary<string, string>() { [String.Empty] = String.Empty };
-            public Dictionary<string, string> Displays { get => displays; set {
-                if(value.Count > 0) {
-                    displays = value;
-                    NotifyPropertyChanged();
-                    DisplayId = displays.ContainsKey(DisplayId)? DisplayId : displays.First().Key;
-                }
-                else {
-                    displays = new Dictionary<string, string>() { [String.Empty] = String.Empty };
-                    DisplayId = String.Empty;
-                }
+            private BindingList<KeyValuePair<string, string>> displays = new BindingList<KeyValuePair<string, string>>();
+            public BindingList<KeyValuePair<string, string>> Displays { get => displays; set {
+                displays.Clear();
+
+                foreach(var kvp in value)
+                    displays.Add(kvp);
+
+                NotifyPropertyChanged();
+
+                DisplayId = displays.Any(kvp => kvp.Key == DisplayId)? DisplayId 
+                    : displays.FirstOrDefault().Key ?? string.Empty;
+                
             } }
 
-            private Dictionary<string, string> serialComs = new Dictionary<string, string>() { [String.Empty] = String.Empty };
-            public Dictionary<string, string> SerialComs { get => serialComs; set {
-                if(value.Count > 0) {
-                    serialComs = value;
-                    NotifyPropertyChanged();
-                    SerialComId = serialComs.ContainsKey(SerialComId)? SerialComId : serialComs.First().Key;
-                }
-                else {
-                    serialComs = new Dictionary<string, string>() { [String.Empty] = String.Empty };
-                    SerialComId = String.Empty;
-                }
-            } }
+            private BindingList<KeyValuePair<string, string>> serialComs = new BindingList<KeyValuePair<string, string>>();
+            public BindingList<KeyValuePair<string, string>> SerialComs { get => serialComs; set {
+                serialComs.Clear();
+                
+                foreach(var kvp in value)
+                    serialComs.Add(kvp);
+
+                NotifyPropertyChanged();
+
+                SerialComId = serialComs.Any(kvp => kvp.Key == SerialComId)? SerialComId 
+                    : serialComs.FirstOrDefault().Key ?? string.Empty;
+            }}
         }
 
         private static Configuration manager = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -252,7 +253,7 @@ namespace AyeBlinkin
             }
 
             //init volatile copies
-            TotalLeds = (Model.VerticalLEDs * 2) + Model.HorizontalLEDs;
+            Model.TotalLeds = (Model.VerticalLEDs * 2) + Model.HorizontalLEDs;
             Model.Mirror = false;
             bindingSource = new BindingSource(Model, null);
         }
@@ -263,26 +264,31 @@ namespace AyeBlinkin
             if(binding != null)
                 component.DataBindings.Remove(binding);
                 
-            component.BindingContext = context; 
+            component.BindingContext = context;
             component.DataBindings.Add(new Binding(controlField, bindingSource, modelField, false, DataSourceUpdateMode.OnPropertyChanged));
         }
 
-        internal static void AddBinding(this Control control, string controlField, string modelField) 
+        internal static void AddBinding(this Control control, string controlField, string modelField)
         {
             control.BindingContext = context;
-            control.VisibleChanged += delegate(object sender, EventArgs e) 
+            control.VisibleChanged += (s, e) =>
             {
-                if(control is ComboBox && !controlField.Equals("Width")) 
-                {
-                    (control as ComboBox).DataSource = new BindingSource(bindingSource.DataSource, modelField);
-                    modelField = modelField.Substring(0, modelField.Length-1) + "Id";
-                }
-                
                 var binding = control.DataBindings.Cast<Binding>().FirstOrDefault(x => x.PropertyName == controlField);
                 if(binding != null)
                     control.DataBindings.Remove(binding);
 
-                control.DataBindings.Add(new Binding(controlField, bindingSource, modelField, false, DataSourceUpdateMode.OnPropertyChanged));
+                if(control is ComboBox && !controlField.Equals("Width"))
+                {
+                    var cb = control as ComboBox;
+                    cb.DataSource = null;
+                    cb.Items.Clear();
+                    cb.DataSource = new BindingSource(bindingSource.DataSource, modelField);
+                    cb.DisplayMember = "Value";
+                    cb.ValueMember = "Key";
+                    modelField = modelField.Substring(0, modelField.Length-1) + "Id";
+                }
+
+                control.DataBindings.Add(new Binding(controlField, bindingSource, modelField, true, DataSourceUpdateMode.OnPropertyChanged));
             };
         }
     }

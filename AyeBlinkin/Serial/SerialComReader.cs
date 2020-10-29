@@ -14,17 +14,21 @@ namespace AyeBlinkin.Serial
             Thread.CurrentThread.Name = $"RX Message Loop";
             var token = (CancellationToken)obj;
 
+            var ix = 0;
             var messageBuffer = new List<byte>();
             var readBuffer = new byte[readBufferSize];
 
             while(!token.IsCancellationRequested) 
             {
-                try {
-                    Task.Run(() => { try { 
-                        messageBuffer.AddRange(readBuffer.Take(port.Read(readBuffer, 0, readBufferSize))); 
-                    } catch (Exception) { } }).Wait(token);
+                try 
+                {
+                    Task.Run(() => { 
+                        try { messageBuffer.AddRange(readBuffer.Take(port.Read(readBuffer, 0, readBufferSize))); } 
+                        catch { } 
+                    }).Wait(token);
                 }
-                catch(OperationCanceledException) {
+                catch(OperationCanceledException) 
+                {
                     port.ReadTimeout = 1;
                 }
 
@@ -38,7 +42,7 @@ namespace AyeBlinkin.Serial
                         if(messageBuffer.Count < 4) // INTERRUPT, COMMAND, VALUE(s), INTERRUPT
                             break;
 
-                        var ix = messageBuffer.IndexOf(Message.INTERRUPT, 3);
+                        ix = messageBuffer.IndexOf(Message.INTERRUPT, 3);
                         if(ix < 0)
                             break;
 

@@ -21,7 +21,7 @@ namespace AyeBlinkin
         static AyeBlinkin() => screen = new WaitCallback(HardwareScreenCapture<ClassifiedColor>.Run);
 
         [STAThread]
-        static void Main() 
+        static void Main()
         {
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
@@ -33,14 +33,14 @@ namespace AyeBlinkin
         internal static void StartStopComThread() 
         {
             serial?.Dispose();
-            if(!string.IsNullOrWhiteSpace(Settings.ComPort))
+            if(!string.IsNullOrWhiteSpace(Settings.Model.SerialComId))
             {
                 serial = new SerialCom();
-                SerialCom.Enqueue(Message.SetLedNumber(Settings.TotalLeds));
+                SerialCom.Enqueue(Message.SetLedNumber(Settings.Model.TotalLeds));
                 SerialCom.Enqueue(Message.GetPatterns());
             }
         }
-        
+       
         internal static void StartStopScreenThread() => StartStop(Settings.Model.Mirror, screen, ref screenThreadCancel);
 
         private static void StartStop(bool start, WaitCallback job, ref CancellationTokenSource cancel) 
@@ -63,6 +63,7 @@ namespace AyeBlinkin
         private static void OnExit(object sender, EventArgs e) 
         {
             Settings.SettingsHwnd = IntPtr.Zero;
+            WindowsEvents.Detach();
 
             try { screenThreadCancel?.Cancel(); } catch { }
             screenThreadCancel?.Dispose();

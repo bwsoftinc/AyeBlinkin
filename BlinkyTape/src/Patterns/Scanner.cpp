@@ -34,5 +34,5 @@ void Scanner::draw(CRGB* leds) {
     direction = 0;
   }
   
-  delay(30);  // TODO: Don't place me here
+  delay(30);
 }

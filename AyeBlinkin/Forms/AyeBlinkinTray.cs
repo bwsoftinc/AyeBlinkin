@@ -5,8 +5,8 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.ComponentModel;
 
-using AyeBlinkin.Serial;
 using AyeBlinkin.DirectX;
+using AyeBlinkin.CoreAudio;
 using AyeBlinkin.Resources;
 using AyeBlinkin.Forms.Controls;
 
@@ -21,8 +21,6 @@ namespace AyeBlinkin.Forms
 
         internal AyeBlinkinTray() 
         {
-            Settings.Model.uiContext = SynchronizationContext.Current;
-
             trayIcon = new NotifyIcon() {
                 ContextMenuStrip = MakeContextMenuStrip(),
                 Icon = Icons.Program,
@@ -30,11 +28,13 @@ namespace AyeBlinkin.Forms
                 Text = AyeBlinkin.Name
             };
             trayIcon.MouseUp += LeftClickOpenMenu;
+            Settings.Model.uiContext = SynchronizationContext.Current;
 
             settingsForm = new SettingsForm();
             Settings.Model.PropertyChanged += buildPatternOptions;
-            Settings.Model.SerialComs = SerialCom.GetUsbDevicePorts();
+            Settings.Model.SerialComs = WindowsEvents.GetUsbDevicePorts();
             Settings.Model.Adapters = DeviceEnumerator.GetAdapters();
+            WasapiSoundCapture.Stop();
 #if DEBUG
             OpenSettingsForm(null, null);
 #endif

@@ -27,7 +27,7 @@ void ShimmerDot::update() {
 
       //error checking
       if (value/valueDivisor > MAX_LEDS)
-        value -= MAX_LEDS * valueDivisor;
+        value -= LED_COUNT * valueDivisor;
     }
     else
       directionForward = false;
@@ -54,23 +54,23 @@ uint8_t ShimmerDot::getValue() {
 }
 
 void Shimmer::reset() { 
-  for (uint8_t i = 0; i < LED_COUNT; i++)
+  for (uint8_t i = 0; i < MAX_LEDS; i++)
     shimmerDots[i].reset();
 }
 
-Shimmer::Shimmer(float r, float g, float b) :
+Shimmer::Shimmer(uint8_t r, uint8_t g, uint8_t b) :
   color_temp_factor_r(r),
   color_temp_factor_g(g),
   color_temp_factor_b(b) {
 }
 
 void Shimmer::draw(CRGB* leds) { 
-  for (uint8_t i = 0; i < LED_COUNT; i++) {
+  for (uint8_t i = 0; i < MAX_LEDS; i++) {
     shimmerDots[i].update();
 
-    leds[i].r = (uint8_t)(shimmerDots[i].getValue() * color_temp_factor_r);
-    leds[i].g = (uint8_t)(shimmerDots[i].getValue() * color_temp_factor_g);
-    leds[i].b = (uint8_t)(shimmerDots[i].getValue() * color_temp_factor_b);
+    leds[i].r = (uint8_t)(shimmerDots[i].getValue() * color_temp_factor_r / 255);
+    leds[i].g = (uint8_t)(shimmerDots[i].getValue() * color_temp_factor_g / 255);
+    leds[i].b = (uint8_t)(shimmerDots[i].getValue() * color_temp_factor_b / 255);
   }
     
   delay(30);

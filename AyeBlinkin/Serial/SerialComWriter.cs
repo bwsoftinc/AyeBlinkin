@@ -11,49 +11,54 @@ namespace AyeBlinkin.Serial
         private static object enqueueLock = new object();
         private static Queue<Message.Command> MessageQueue = new Queue<Message.Command>();
 
-        internal static void Enqueue(Message.Command item) { 
+        internal static void Enqueue(Message.Command item) 
+        { 
             lock(enqueueLock) 
                 MessageQueue.Enqueue(item);
         }
 
         private void Write(byte[] bytes) => port.Write(bytes, 0, bytes.Length);
 
-        private void Writer(object obj) {
+        private void Writer(object obj)
+        {
             Thread.CurrentThread.Name = "TX Message Loop";
             var token = (CancellationToken)obj;
             
-            while(!token.IsCancellationRequested) 
+            Message.Command item;
+            while(!token.IsCancellationRequested)
             {
                 try
                 {
-                    if(MessageQueue.Count > 0) 
+                    if(!initialized)
+                        Initialize();
+
+                    if(MessageQueue.Count > 0)
                     {
-                        var item = MessageQueue.Dequeue();
-                        if(!MessageQueue.Any(x => x.Type == item.Type)) 
+                        item = MessageQueue.Dequeue();
+                        if(!MessageQueue.Any(x => x.Type == item.Type))
                         {
-                            if(item.Type == Message.Type.Stream) 
+                            if(item.Type == Message.Type.Stream)
                             {
-                                for(var x = 0; x < item.Raw.Length; x += maxPacketSize) 
+                                for(var x = 0; x < item.Raw.Length; x += maxPacketSize)
                                 {
                                     port.Write(item.Raw, x, Math.Min(maxPacketSize, item.Raw.Length - x));
                                     Thread.Sleep(0); //enough of a pause to let serial buffer not overflow
                                 }
                             }
-                            else 
+                            else
                                 Write(item.Raw);
                         }
 #if DEBUG
                         else
-                            Console.WriteLine($"{item.Type.ToString()} Message Dropped");
+                            Console.WriteLine($"Redundant {item.Type.ToString()} Message Dropped");
 #endif
                     }
 
                     Thread.Sleep(1);
                 }
-                catch (Exception)
+                catch
                 {
                     Dispose();
-                    Initialize();
                 }
             }
         }

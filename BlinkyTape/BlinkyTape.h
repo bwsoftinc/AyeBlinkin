@@ -22,10 +22,7 @@
 #define BRIGHTNESS_EEPROM_ADDRESS  0x03 // EEPROM storage address for selected brightness
 
 #define BUTTON_PATTERN_SWITCH_TIME 400  // ms to hold the button down to switch patterns
-#define MAX_PATTERN_COUNT 13            // how many patterns can be held in memory at runtime
-
-//const uint8_t DEFAULT_LED_COUNT = 45;  // Number of LEDs to display the patterns on
-const uint8_t MAX_LEDS = 60;            // Maximum number of LEDs that can be controlled
+#define MAX_PATTERN_COUNT 12            // how many patterns can be held in memory at runtime
 
 #define BRIGHTNESS_STEP_COUNT 8         // the number of brightness steps to cycle through with button
 const uint8_t brightnessSteps[BRIGHTNESS_STEP_COUNT] 
@@ -35,6 +32,7 @@ extern void setNumberLeds(uint8_t);
 extern void setPattern(uint8_t);
 extern void setBrightness(uint8_t);
 
+const uint8_t MAX_LEDS = 60;            // Maximum number of LEDs that can be controlled
 extern volatile uint8_t LED_COUNT;
 extern volatile uint8_t currentBrightness;
 extern volatile bool interruptSerialLoop;

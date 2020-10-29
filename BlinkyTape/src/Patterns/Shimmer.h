@@ -5,7 +5,7 @@ class ShimmerDot {
     bool directionForward;
     uint8_t maxValue;
     uint8_t resetDelay;
-    int value;
+    uint16_t value;
 
   public:
     void reset();
@@ -16,12 +16,12 @@ class ShimmerDot {
 class Shimmer : public Pattern {
   private:
     ShimmerDot shimmerDots[MAX_LEDS];
-    float color_temp_factor_r;
-    float color_temp_factor_g;
-    float color_temp_factor_b;
+    uint8_t color_temp_factor_r;
+    uint8_t color_temp_factor_g;
+    uint8_t color_temp_factor_b;
 
   public:
-    Shimmer(float r, float g, float b);
+    Shimmer(uint8_t r, uint8_t g, uint8_t b);
     void reset();
     void draw(CRGB* leds);  
 };

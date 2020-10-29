@@ -32,23 +32,6 @@ namespace AyeBlinkin.Centroid
             return changed;
         }
 
-        private static int distance(byte[] a, byte[] z)
-        {
-            var rmean = ((int)a[0] + (int)z[0]) / 2;
-            var r = (int)a[0] - (int)z[0];
-            var g = (int)a[1] - (int)z[1];
-            var b = (int)a[2] - (int)z[2];
-            return (((512+rmean)*r*r)>>8) + 4*g*g + (((767-rmean)*b*b)>>8);
-        }
-
-        private static int euclidDistance(byte[] a, byte[] z) 
-        {
-            var r = (int)z[0]-(int)a[0];
-            var g = (int)z[1]-(int)a[1];
-            var b = (int)z[2]-(int)a[2];
-            return r*r + g*g + b*b;
-        }
-
         protected override void Implementation() 
         {
             byte r, g, b;

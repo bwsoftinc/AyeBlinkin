@@ -3,9 +3,8 @@
 #include "src/Patterns/ColorLoop.h"
 #include "src/Patterns/Shimmer.h"
 #include "src/Patterns/Scanner.h"
-#include "src/Patterns/Flashlight.h"
 #include "src/Patterns/Fire.h"
-#include "src/Patterns/Pacifica.h"
+#include "src/Patterns/Flashlight.h"
 #include "src/Patterns/Rainbow.h"
 #include "src/Patterns/Lightning.h"
 #include "src/Patterns/Plasma.h"
@@ -30,38 +29,32 @@ uint8_t patternCount = 0;
 uint8_t currentPattern = 0;
 
 // Patterns
-ColorLoop blueRainbow(.2,1,1);
-Flashlight flashlight(CRGB(255,255,255));
+ColorLoop blueRainbow(51,255,255);
 Scanner scanner(4, CRGB(255,0,0));
-Flashlight offlight(CRGB(0,0,0));
-ColorLoop originalRainbow(1,1,1);
-Shimmer shimmer(1,1,1);
-Fire fire(100, 55);
-Pacifica pacifica;
-Rainbow rainbowShift(0 ,85, 170);
-Lightning lightning(40, 9);
+ColorLoop originalRainbow(255,255,255);
+Flashlight off(CRGB(0,0,0));
+Shimmer shimmer(255,255,255);
+Fire fire(100,55);
+Rainbow rainbowShift(0,85,170);
+Lightning lightning(40,9);
 Plasma plasma;
 
 const char blueRainbowName[]      PROGMEM = "Blue Rainbow Run";
-const char flashlightName[]       PROGMEM = "Flashlight";
 const char scannerName[]          PROGMEM = "Knight Rider";
 const char offlightName[]         PROGMEM = "Off";
 const char originalRainbowName[]  PROGMEM = "Rainbow Run";
 const char shimmerName[]          PROGMEM = "Shimmer";
 const char fireName[]             PROGMEM = "Fire";
-const char pacificaName[]         PROGMEM = "Pacifica";
 const char rainbowShiftName[]     PROGMEM = "Rainbow Shift";
 const char lightningName[]        PROGMEM = "Lightning";
 const char plasmaName[]           PROGMEM = "Plasma";
 const char* const patternNames[]  PROGMEM = { //keep this order the same as patterns are loaded
   blueRainbowName,
-  flashlightName,
   scannerName,
   offlightName,
   originalRainbowName,
   shimmerName,
   fireName,
-  pacificaName,
   rainbowShiftName,
   lightningName,
   plasmaName
@@ -159,13 +152,11 @@ void setup(){
   }
 
   loadPattern(&blueRainbow);
-  loadPattern(&flashlight);
   loadPattern(&scanner);
-  loadPattern(&offlight);
+  loadPattern(&off);
   loadPattern(&originalRainbow);
   loadPattern(&shimmer);
   loadPattern(&fire);
-  loadPattern(&pacifica);
   loadPattern(&rainbowShift);
   loadPattern(&lightning);
   loadPattern(&plasma);

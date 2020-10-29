@@ -23,7 +23,7 @@ void Lightning::reset() {
 
 void Lightning::draw(CRGB* leds) {  
   if(flash) { //draw one flash of the strike
-    fill_solid(&leds[startIndex], endIndex - startIndex, CRGB(level, level, level));    
+    fill_solid(&leds[startIndex], endIndex - startIndex, CRGB(level, level, level));
     LEDS.show();
 
     delay(random8(4,10));
@@ -40,8 +40,8 @@ void Lightning::draw(CRGB* leds) {
     flash = false;
   } 
     
-  delay(10);
-  delayCount -= 10;
+  delay(5);
+  delayCount -= 5;
   if(delayCount <= 0) {
       flash = true;
       if(flashCounter == flashLength) // end of strike

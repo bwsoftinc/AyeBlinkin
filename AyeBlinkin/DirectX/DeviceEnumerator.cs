@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.ComponentModel;
 using System.Collections.Generic;
 
 using SharpDX.DXGI;
@@ -11,14 +12,21 @@ namespace AyeBlinkin.DirectX
         private static Dictionary<string, string> adapters = null;
         private static Dictionary<string, List<string>> displays = new Dictionary<string, List<string>>();
 
-        internal static Dictionary<string, string> GetAdapters() {
+        internal static BindingList<KeyValuePair<string, string>> GetAdapters()
+        {
             if(adapters == null)
                 QueryAdapters();
 
-            return adapters.ToDictionary(x => x.Key, x => new String(x.Value));
+            var list = new BindingList<KeyValuePair<string, string>>();
+
+            foreach(var kvp in adapters)
+                list.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value));
+
+            return list;
         }
 
-        internal static List<string> GetDisplays(int adapterId) {
+        internal static List<string> GetDisplays(int adapterId)
+        {
             if(adapters == null)
                 QueryAdapters();
 
@@ -28,14 +36,14 @@ namespace AyeBlinkin.DirectX
             return displays[adapterId.ToString()].Select(x => new String(x)).ToList();
         }
 
-        private static void QueryAdapters() 
+        private static void QueryAdapters()
         {
             var adapt = new Dictionary<string, string>();
             var displ = new Dictionary<string, List<string>>();
-            using(var factory = new Factory1()) 
+            using(var factory = new Factory1())
             {
                 var acount = factory.GetAdapterCount1();
-                for(var i = 0; i < acount; i++) 
+                for(var i = 0; i < acount; i++)
                 {
                     using(var adapter = factory.GetAdapter1(i))
                     {
@@ -46,6 +54,7 @@ namespace AyeBlinkin.DirectX
                         var disp = new List<string>();
                         displ.Add(adesc.DeviceId.ToString(), disp);
                         adapt.Add(adesc.DeviceId.ToString(), adesc.Description);
+
                         var ocount = adapter.GetOutputCount();
                         for(var j = 0; j < ocount; j++)
                         {
@@ -64,10 +73,10 @@ namespace AyeBlinkin.DirectX
             displays = displ;
         }
 
-        internal static Output1 GetOutput1(this Adapter1 adapter, string display) 
+        internal static Output1 GetOutput1(this Adapter1 adapter, string display)
         {
             var count = adapter.GetOutputCount();
-            for(var i = 0; i < count; i++) 
+            for(var i = 0; i < count; i++)
             {
                 using(var output = adapter.GetOutput(i))
                 {
@@ -78,9 +87,9 @@ namespace AyeBlinkin.DirectX
             throw new ArgumentException($"Invalid display: {display}");
         }
 
-        internal static Adapter1 GetAdapter(int deviceId) 
+        internal static Adapter1 GetAdapter(int deviceId)
         {
-            using (var factory = new Factory1()) 
+            using (var factory = new Factory1())
             {
                 var count = factory.GetAdapterCount1();
                 Adapter1 adapter = null;
@@ -91,7 +100,7 @@ namespace AyeBlinkin.DirectX
                         if(adapter.Description1.DeviceId == deviceId)
                             return adapter;
                         adapter.Dispose();
-                    } 
+                    }
                     catch {
                         adapter?.Dispose();
                     }

@@ -3,7 +3,7 @@ namespace AyeBlinkin.Centroid
     internal class ClassifiedColor : CentroidBase
     {
         private const int startCluster = 1;
-        public ClassifiedColor() 
+        public ClassifiedColor()
         {
             Clusters = new CentroidColor[7]
             {
@@ -17,13 +17,13 @@ namespace AyeBlinkin.Centroid
             };
         }
 
-        private void Reset() 
+        private void Reset()
         {
-            for(var i = 0; i < Clusters.Length; i++) 
+            for(var i = 0; i < Clusters.Length; i++)
                 Clusters[i].Reset();
         }
 
-        public bool Recenter() 
+        public bool Recenter()
         {
             var changed = false;
             for(var i = 0; i < startCluster; i++)
@@ -34,15 +34,7 @@ namespace AyeBlinkin.Centroid
 
             return changed;
         }
-
-        private static int euclidDistance(byte[] a, byte[] z) 
-        {
-            var r = (int)z[0]-(int)a[0];
-            var g = (int)z[1]-(int)a[1];
-            var b = (int)z[2]-(int)a[2];
-            return r*r + g*g + b*b;
-        }
-
+        
         protected override void Implementation() 
         {
             byte r, g, b;

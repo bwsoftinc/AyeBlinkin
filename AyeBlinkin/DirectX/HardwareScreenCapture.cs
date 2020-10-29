@@ -66,8 +66,10 @@ namespace AyeBlinkin.DirectX
 
             TryReleaseFrame();
             if(Settings.SettingsHwnd != IntPtr.Zero) { // restore window background color
+                try {
                 device?.ImmediateContext.ClearRenderTargetView(renderTarget, SharpDX.Color.WhiteSmoke);
                 renderWindow?.Present(0, PresentFlags.None);
+                } catch { }
             }
 
             Settings.Model.PropertyChanged -= LedsChanged;
@@ -104,7 +106,7 @@ namespace AyeBlinkin.DirectX
             adapter = DeviceEnumerator.GetAdapter(int.Parse(Settings.Model.AdapterId));
             output = adapter.GetOutput1(Settings.Model.DisplayId);
 
-            var scale = Settings.Scale;
+            var scale = Settings.Model.Scale;
             var bounds = output.Description.DesktopBounds;
             var outputWidth = bounds.Right - bounds.Left;
             var outputHeight = bounds.Bottom - bounds.Top;
@@ -212,7 +214,7 @@ namespace AyeBlinkin.DirectX
 
                     var selected = 
 #if DEBUG
-                    i == Settings.PreviewLED? 1F : 
+                    i == Settings.Model.PreviewLED? 1F : 
 #endif
                     0F;
 
