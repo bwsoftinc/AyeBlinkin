@@ -74,9 +74,6 @@ namespace AyeBlinkin.CoreAudio
             instance.capture.StartRecording();
         }
 
-        public void Dispose() 
-        {
-            capture.Dispose();
-        }
+        public void Dispose() => capture.Dispose();
     }
 }

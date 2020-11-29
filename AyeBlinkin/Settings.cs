@@ -37,66 +37,66 @@ namespace AyeBlinkin
 
             [ConfigurationProperty("Left", DefaultValue="-1")]
             public int Left {
-                get => (int)this["Left"];
-                set => this["Left"] = value;
+                get => (int)this[nameof(Left)];
+                set => this[nameof(Left)] = value;
             }
 
             [ConfigurationProperty("Top", DefaultValue="-1")]
             public int Top {
-                get => (int)this["Top"];
-                set => this["Top"] = value;
+                get => (int)this[nameof(Top)];
+                set => this[nameof(Top)] = value;
             }
 
             [ConfigurationProperty("Mirror", DefaultValue="false")]
-            public bool Mirror { get => (bool)this["Mirror"]; set {
-                this["Mirror"] = value;
+            public bool Mirror { get => (bool)this[nameof(Mirror)]; set {
+                this[nameof(Mirror)] = value;
                 NotifyPropertyChanged();
                 AyeBlinkin.StartStopScreenThread();
             } }
 
             [ConfigurationProperty("Red", DefaultValue="0")]
-            public int Red { get => (int)this["Red"]; set { 
-                this["Red"] = value;
+            public int Red { get => (int)this[nameof(Red)]; set { 
+                this[nameof(Red)] = value;
                 NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("Green", DefaultValue="0")]
-            public int Green { get => (int)this["Green"]; set { 
-                this["Green"] = value;
+            public int Green { get => (int)this[nameof(Green)]; set { 
+                this[nameof(Green)] = value;
                 NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("Blue", DefaultValue="0")]
-            public int Blue { get => (int)this["Blue"]; set {
-                this["Blue"] = value;
+            public int Blue { get => (int)this[nameof(Blue)]; set {
+                this[nameof(Blue)] = value;
                 NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("Brightness", DefaultValue="0")]
-            public int Brightness { get => (int)this["Brightness"]; set { 
-                this["Brightness"] = value;
+            public int Brightness { get => (int)this[nameof(Brightness)]; set { 
+                this[nameof(Brightness)] = value;
                 NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("HorizontalLEDs", DefaultValue="25")]
-            public int HorizontalLEDs { get => (int)this["HorizontalLEDs"]; set { 
-                this["HorizontalLEDs"] = value;
+            public int HorizontalLEDs { get => (int)this[nameof(HorizontalLEDs)]; set { 
+                this[nameof(HorizontalLEDs)] = value;
                 TotalLeds = value + (VerticalLEDs * 2);
                 NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("VerticalLEDs", DefaultValue="10")]
-            public int VerticalLEDs { get => (int)this["VerticalLEDs"]; set {
-                this["VerticalLEDs"] = value;
+            public int VerticalLEDs { get => (int)this[nameof(VerticalLEDs)]; set {
+                this[nameof(VerticalLEDs)] = value;
                 TotalLeds = (value * 2) + HorizontalLEDs;
                 NotifyPropertyChanged();
             } }
 
             [ConfigurationProperty("AdapterId", DefaultValue="")]
-            public string AdapterId { get => (string)this["AdapterId"]; set {
+            public string AdapterId { get => (string)this[nameof(AdapterId)]; set {
                 int val;
                 if(int.TryParse(value, out val)) {
-                    this["AdapterId"] = value;
+                    this[nameof(AdapterId)] = value;
                     NotifyPropertyChanged();
 
                     var list = new BindingList<KeyValuePair<string, string>>();
@@ -107,16 +107,16 @@ namespace AyeBlinkin
                     Displays = list;
                 }
                 else {
-                    this["AdapterId"] = String.Empty;
+                    this[nameof(AdapterId)] = String.Empty;
                     Displays = new BindingList<KeyValuePair<string, string>>();
                 }
             } }
 
             [ConfigurationProperty("DisplayId", DefaultValue="")]
             public string DisplayId {
-                get => (string)this["DisplayId"];
+                get => (string)this[nameof(DisplayId)];
                 set {
-                    this["DisplayId"] = value;
+                    this[nameof(DisplayId)] = value;
                     NotifyPropertyChanged();
 
                     var val = Displays.FirstOrDefault(d => d.Key == DisplayId).Value;
@@ -139,8 +139,8 @@ namespace AyeBlinkin
             }
 
             [ConfigurationProperty("SerialComId", DefaultValue="")]
-            public string SerialComId { get => (string)this["SerialComId"]; set {
-                this["SerialComId"] = value;
+            public string SerialComId { get => (string)this[nameof(SerialComId)]; set {
+                this[nameof(SerialComId)] = value;
                 NotifyPropertyChanged();
                 
                 if(string.IsNullOrWhiteSpace(value))
@@ -150,8 +150,8 @@ namespace AyeBlinkin
             } }
 
             [ConfigurationProperty("Audio", DefaultValue="false")]
-            public bool Audio { get => (bool)this["Audio"]; set {
-                this["Audio"] = value;
+            public bool Audio { get => (bool)this[nameof(Audio)]; set {
+                this[nameof(Audio)] = value;
                 NotifyPropertyChanged();
             } }
 
@@ -205,7 +205,6 @@ namespace AyeBlinkin
 
                 AdapterId = adapters.Any(kvp => kvp.Key == AdapterId)? AdapterId 
                     : adapters.FirstOrDefault().Key ?? string.Empty;
-                
             } }
 
             private BindingList<KeyValuePair<string, string>> displays = new BindingList<KeyValuePair<string, string>>();
@@ -219,7 +218,6 @@ namespace AyeBlinkin
 
                 DisplayId = displays.Any(kvp => kvp.Key == DisplayId)? DisplayId 
                     : displays.FirstOrDefault().Key ?? string.Empty;
-                
             } }
 
             private BindingList<KeyValuePair<string, string>> serialComs = new BindingList<KeyValuePair<string, string>>();
@@ -242,7 +240,8 @@ namespace AyeBlinkin
         internal static BindingModel Model { get; private set; }
         private static readonly BindingSource bindingSource;
 
-        static Settings() {
+        static Settings() 
+        {
             //init configuration
             Model = manager.Sections.Get(nameof(BindingModel)) as BindingModel;
             if(Model == null)

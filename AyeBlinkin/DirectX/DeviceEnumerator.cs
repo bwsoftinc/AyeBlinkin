@@ -12,9 +12,9 @@ namespace AyeBlinkin.DirectX
         private static Dictionary<string, string> adapters = null;
         private static Dictionary<string, List<string>> displays = new Dictionary<string, List<string>>();
 
-        internal static BindingList<KeyValuePair<string, string>> GetAdapters()
+        internal static BindingList<KeyValuePair<string, string>> GetAdapters(bool refresh = false)
         {
-            if(adapters == null)
+            if(adapters == null || refresh)
                 QueryAdapters();
 
             var list = new BindingList<KeyValuePair<string, string>>();

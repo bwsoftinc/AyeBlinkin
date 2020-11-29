@@ -38,7 +38,7 @@ namespace AyeBlinkin.Forms
                 Width = 20
             });
 
-            previous.Click += (sender, pre) => Settings.Model.PreviewLED--;
+            previous.Click += (s, e) => Settings.Model.PreviewLED--;
 
             this.Controls.Add(image = new TestPictureBox() {
                 Dock = DockStyle.Fill,
@@ -54,7 +54,7 @@ namespace AyeBlinkin.Forms
                 Width = 20
             });
 
-            next.Click += (sender, nex) => Settings.Model.PreviewLED++;
+            next.Click += (s, e) => Settings.Model.PreviewLED++;
 
             this.Controls.Add(colors = new TestPanel() {
                 Dock = DockStyle.Bottom,
@@ -62,7 +62,7 @@ namespace AyeBlinkin.Forms
             });
 
             tooltip.SetToolTip(colors, "Color");
-            colors.MouseMove += (sender, e) =>
+            colors.MouseMove += (s, e) =>
             {
                 var tip = tooltips.FirstOrDefault(x => x.rectangle.Contains(e.Location));
                 if(tip == null)
@@ -73,26 +73,29 @@ namespace AyeBlinkin.Forms
                 }
             };
 
-            colors.MouseLeave += (sender, e) => tooltip.Hide(colors);
+            colors.MouseLeave += (s, e) => tooltip.Hide(colors);
 
             this.Text = "Dominant Color";
             this.DoubleBuffered = true;
             this.Padding = Padding.Empty;
         }
 
-        public static void HideSlice() {
+        public static void HideSlice()
+        {
             if(!slice.IsDisposed)
                 slice.Close();
         }
         
-        public static void ShowSlice() {
+        public static void ShowSlice()
+        {
             if(slice.IsDisposed)
                 slice = new CentroidColorForm();
 
             slice.Show();
         }
 
-        internal static void Update(CentroidBase c) {
+        internal static void Update(CentroidBase c)
+        {
             if(slice.IsDisposed)
                 return;
                 

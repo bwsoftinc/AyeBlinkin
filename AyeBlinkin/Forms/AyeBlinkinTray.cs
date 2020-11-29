@@ -65,7 +65,7 @@ namespace AyeBlinkin.Forms
                 makeMenuItem("Exit", Exit)
             });
 
-            strip.Opening += (sender, e) => this.settingsForm.Focus();
+            strip.Opening += (s, e) => this.settingsForm.Focus();
             return strip;
         }
 
@@ -136,7 +136,7 @@ namespace AyeBlinkin.Forms
                 Name = name
             };
 
-        private void Exit(object sender, EventArgs e)  => Application.Exit();
+        private void Exit(object s, EventArgs e)  => Application.Exit();
         
         internal void hideIcon() => trayIcon.Visible = false;
 

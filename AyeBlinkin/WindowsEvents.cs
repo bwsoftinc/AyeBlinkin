@@ -31,13 +31,55 @@ namespace AyeBlinkin
 
         private static void DisplaySettingsChanged(object sender, EventArgs e)
         {
-
+            Settings.Model.Adapters = DirectX.DeviceEnumerator.GetAdapters(true);
         }
 
         private static void PowerModeChanged(object sender, PowerModeChangedEventArgs e) 
         {
+            if(e.Mode == PowerModes.Suspend)
+                Suspend();
+            else if(e.Mode == PowerModes.Resume)
+                Resume();
+        }
 
+        private class Model 
+        {
+            public bool Mirror;
+            public bool Audio;
+            public int Red;
+            public int Green;
+            public int Blue;
+            public int PatternId;
 
+        }
+
+        private static readonly Model model = new Model();
+
+        private static void Suspend()
+        {
+            model.Red = Settings.Model.Red;
+            model.Green = Settings.Model.Green;
+            model.Blue = Settings.Model.Blue;
+            model.Audio = Settings.Model.Audio;
+            model.Mirror = Settings.Model.Mirror;
+            model.PatternId = Settings.Model.PatternId;
+
+            Settings.Model.Mirror = false;
+            Settings.Model.Audio = false;
+            Settings.Model.PatternId = -2;
+            Settings.Model.Red = 0;
+            Settings.Model.Green = 0;
+            Settings.Model.Blue = 0;
+        }
+
+        private static void Resume()
+        {
+            Settings.Model.Blue = model.Blue;
+            Settings.Model.Green = model.Green;
+            Settings.Model.Red = model.Red;
+            Settings.Model.PatternId = model.PatternId;
+            Settings.Model.Mirror = model.Mirror;
+            Settings.Model.Audio = model.Audio;
         }
 
         private static void initUsbEventWatcher() 
